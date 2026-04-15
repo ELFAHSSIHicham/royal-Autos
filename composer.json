@@ -1,0 +1,18 @@
+{
+  "name": "hicham/royal-autos",
+  "description": "Projet PHP Royal Autos",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "hicham",
+      "email": "hicham.el-fahssi@etu.univ-amu.fr"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {}
+}
