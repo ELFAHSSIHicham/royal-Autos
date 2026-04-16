@@ -1,18 +1,24 @@
 {
-  "name": "hicham/royal-autos",
-  "description": "Projet PHP Royal Autos",
-  "type": "project",
-  "autoload": {
-    "psr-4": {
-      "App\\": "src/"
+    "name": "royal-autos/app",
+    "description": "Royal Autos — Vente de véhicules d'occasion premium à Montauban",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "phpmailer/phpmailer": "^7.0",
+        "stripe/stripe-php": "^20.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Controllers\\": "src/Controllers/",
+            "Models\\":      "src/Models/",
+            "Views\\":       "src/Views/",
+            "Shared\\":      "src/Shared/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^1.10"
     }
-  },
-  "authors": [
-    {
-      "name": "hicham",
-      "email": "hicham.el-fahssi@etu.univ-amu.fr"
-    }
-  ],
-  "minimum-stability": "stable",
-  "require": {}
 }
