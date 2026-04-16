@@ -1,23 +1,17 @@
 <?php
-declare(strict_types=1);
 
-function db(): PDO
-{
-    static $pdo = null;
+/**
+ * Configuration base de données — Royal Autos
+ *
+ * Retourne l'instance de connexion MySQLi.
+ * Les credentials sont lus depuis le fichier .env via Database::parseEnvVar().
+ *
+ * Usage :
+ *   $db = require __DIR__ . '/../config/database.php';
+ *
+ * @package Config
+ */
 
-    if ($pdo === null) {
-        $host = '127.0.0.1';
-        $dbname = 'royal_autos';
-        $user = 'root';
-        $pass = ''; // set your MySQL password if needed
+use Models\Database;
 
-        $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
-        $pdo = new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-    }
-
-    return $pdo;
-}
-
+return Database::getConnection();

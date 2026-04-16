@@ -1,14 +1,36 @@
 <?php
 
+/**
+ * Routes — Royal Autos
+ *
+ * Référentiel centralisé de toutes les routes de l'application.
+ * Les controllers utilisent ces constantes dans support() et dans les redirects
+ * pour éviter les chaînes codées en dur.
+ *
+ * @package Config
+ */
+
 return [
-    '/' => ['App\\Controllers\\HomeController', 'index'],
+    //Public
+    'home'               => '/',
+    'catalogue'          => '/catalogue',
+    'voiture_detail'     => '/voiture',           // + /{slug}
+    'contact'            => '/contact',
+    'mentions_legales'   => '/mentions-legales',
 
-    '/vehicles' => ['App\\Controllers\\VehicleController', 'index'],
-    '/vehicle'  => ['App\\Controllers\\VehicleController', 'show'],
+    //Réservation
+    'reservation'        => '/reservation',
+    'stripe_success'     => '/reservation/succes',
+    'stripe_cancel'      => '/reservation/annulee',
+    'stripe_webhook'     => '/stripe/webhook',
 
-    '/admin/login'           => ['App\\Controllers\\AdminController', 'loginForm'],
-    '/admin/login-post'      => ['App\\Controllers\\AdminController', 'loginPost'],
-    '/admin/vehicles'        => ['App\\Controllers\\AdminController', 'vehiclesList'],
-    '/admin/vehicles/create' => ['App\\Controllers\\AdminController', 'vehicleCreateForm'],
-    '/admin/vehicles/store'  => ['App\\Controllers\\AdminController', 'vehicleStore'],
+    //Admin
+    'admin_login'        => '/admin/login',
+    'admin_logout'       => '/admin/logout',
+    'admin_dashboard'    => '/admin',
+    'admin_voitures'     => '/admin/voitures',
+    'admin_voiture_new'  => '/admin/voitures/nouveau',
+    'admin_voiture_edit' => '/admin/voitures/modifier',   // + /{id}
+    'admin_voiture_del'  => '/admin/voitures/supprimer',  // + /{id}
+    'admin_reservations' => '/admin/reservations',
 ];
