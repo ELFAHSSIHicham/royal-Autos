@@ -10,7 +10,7 @@
                     <div class="footer-sep-line"></div>
                 </div>
                 <p class="footer-desc">
-                    Votre spécialiste en véhicules d'occasion premium depuis 2008.
+                    Votre spécialiste en véhicules d'occasion depuis 2008.
                     Qualité, transparence et service d'exception à Montauban.
                 </p>
             </div>
@@ -38,9 +38,9 @@
                 <ul class="footer-links">
                     <li><a href="#">15 Av. de la République</a></li>
                     <li><a href="#">82000 Montauban</a></li>
-                    <li><a href="tel:+33563000000">+33 (0)5 63 00 00 00</a></li>
-                    <li><a href="mailto:contact@royalautos.fr">contact@royalautos.fr</a></li>
-                    <li class="footer-hours">Lun – Sam : 9h00 – 19h00</li>
+                    <li><a href="tel:+33563000000">+33 (0)6 52 01 53 54</a></li>
+                    <li><a href="mailto:contact@royalautos.fr">royalauto@laposte.net</a></li>
+                    <li class="footer-hours">Lun – Sam : 09:00–12:00/14:00–19:00</li>
                 </ul>
             </div>
         </div>
