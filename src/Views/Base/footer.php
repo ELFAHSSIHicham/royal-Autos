@@ -36,7 +36,7 @@
             <div class="footer-col">
                 <div class="footer-col-title">Contact</div>
                 <ul class="footer-links">
-                    <li><a href="#">15 Av. de la République</a></li>
+                    <li><a href="#">1279 Av. de Toulouse</a></li>
                     <li><a href="#">82000 Montauban</a></li>
                     <li><a href="tel:+33563000000">+33 (0)6 52 01 53 54</a></li>
                     <li><a href="mailto:contact@royalautos.fr">royalauto@laposte.net</a></li>
