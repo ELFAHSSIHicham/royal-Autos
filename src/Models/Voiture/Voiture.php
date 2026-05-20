@@ -5,7 +5,6 @@ use Models\Database;
 
 class Voiture
 {
-    // ── SELECT de base avec JOIN marques + modeles ────────────────────────────
     private static string $select = "
         SELECT  v.*,
                 ma.nom        AS marque,
@@ -15,7 +14,7 @@ class Voiture
         LEFT JOIN modeles mo ON mo.id = v.modele_id
     ";
 
-    // ── Lecture ──────────────────────────────────────────────────────────────
+    // ── Lecture ───────────────────────────────────────────────────────────────
 
     public static function getAll(array $f = [], int $page = 1, int $perPage = 9): array
     {
@@ -41,7 +40,6 @@ class Voiture
         $w      = implode(' AND ', $where);
         $offset = ($page - 1) * $perPage;
 
-        // Compte total
         $countSql = "SELECT COUNT(*) AS c
                      FROM   voitures v
                      JOIN   marques  ma ON ma.id = v.marque_id
@@ -53,7 +51,6 @@ class Voiture
         $total = (int)$stmt->get_result()->fetch_assoc()['c'];
         $stmt->close();
 
-        // Données paginées
         $stmt = $db->prepare(self::$select . " WHERE $w ORDER BY v.est_vedette DESC, v.created_at DESC LIMIT ? OFFSET ?");
         $stmt->bind_param($types . 'ii', ...array_merge($params, [$perPage, $offset]));
         $stmt->execute();
@@ -122,7 +119,91 @@ class Voiture
         return (int)$row['c'];
     }
 
-    // ── Écriture ─────────────────────────────────────────────────────────────
+    // ── Images ────────────────────────────────────────────────────────────────
+
+    /**
+     * Retourne toutes les images d'une voiture, triées par ordre.
+     */
+    public static function getImages(int $voitureId): array
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare(
+            'SELECT id, url, ordre FROM voiture_images WHERE voiture_id = ? ORDER BY ordre ASC'
+        );
+        $stmt->bind_param('i', $voitureId);
+        $stmt->execute();
+        $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $rows;
+    }
+
+    /**
+     * Ajoute une image pour une voiture.
+     */
+    public static function addImage(int $voitureId, string $url, int $ordre = 1): void
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare(
+            'INSERT INTO voiture_images (voiture_id, url, ordre) VALUES (?, ?, ?)'
+        );
+        $stmt->bind_param('isi', $voitureId, $url, $ordre);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    /**
+     * Supprime une image par son ID.
+     */
+    public static function deleteImage(int $imageId): void
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare('DELETE FROM voiture_images WHERE id = ?');
+        $stmt->bind_param('i', $imageId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    /**
+     * Supprime toutes les images d'une voiture.
+     */
+    public static function deleteAllImages(int $voitureId): void
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare('DELETE FROM voiture_images WHERE voiture_id = ?');
+        $stmt->bind_param('i', $voitureId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    /**
+     * Sauvegarde les nouvelles photos uploadées pour une voiture.
+     * Retourne l'URL de la première photo si aucune image principale n'est définie.
+     */
+    public static function saveNewImages(int $voitureId, array $files, int $ordreDepart = 1): ?string
+    {
+        $premiereUrl = null;
+        $ordre       = $ordreDepart;
+        $allow       = ['jpg', 'jpeg', 'png', 'webp'];
+
+        foreach ($files as $file) {
+            if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) continue;
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, $allow, true)) continue;
+            if ($file['size'] > 5 * 1024 * 1024) continue;
+
+            $name = uniqid('car_', true) . '.' . $ext;
+            $dest = __DIR__ . '/../../../storage/uploads/' . $name;
+            if (!move_uploaded_file($file['tmp_name'], $dest)) continue;
+
+            $url = '/uploads/' . $name;
+            self::addImage($voitureId, $url, $ordre++);
+            if ($premiereUrl === null) $premiereUrl = $url;
+        }
+
+        return $premiereUrl;
+    }
+
+    // ── Écriture ──────────────────────────────────────────────────────────────
 
     public static function create(array $d): int
     {
@@ -130,13 +211,12 @@ class Voiture
         $stmt = $db->prepare(
             'INSERT INTO voitures
                 (marque_id, modele_id, modele, annee, prix, kilometrage,
-                 carburant, transmission, puissance, couleur,
+                 carburant, transmission, puissance, couleur, motorisation, finition,
+                 portes, places, date_mise_circulation, date_immatriculation,
                  description, statut, est_vedette, image_principale, slug)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
         );
-        // i  i  s      i     d    i          s         s             i         s       s            s       i           s                s
-        // mi mo modele annee prix kilometrage carburant transmission puissance couleur description statut est_vedette image_principale slug
-        $stmt->bind_param('iisiidssisssiss',
+        $stmt->bind_param('iisiidssissssiissssiss',
             $d['marque_id'],
             $d['modele_id'],
             $d['modele'],
@@ -147,6 +227,12 @@ class Voiture
             $d['transmission'],
             $d['puissance'],
             $d['couleur'],
+            $d['motorisation'],
+            $d['finition'],
+            $d['portes'],
+            $d['places'],
+            $d['date_mise_circulation'],
+            $d['date_immatriculation'],
             $d['description'],
             $d['statut'],
             $d['est_vedette'],
@@ -165,12 +251,12 @@ class Voiture
         $stmt = $db->prepare(
             'UPDATE voitures
              SET marque_id=?, modele_id=?, modele=?, annee=?, prix=?, kilometrage=?,
-                 carburant=?, transmission=?, puissance=?, couleur=?,
+                 carburant=?, transmission=?, puissance=?, couleur=?, motorisation=?, finition=?,
+                 portes=?, places=?, date_mise_circulation=?, date_immatriculation=?,
                  description=?, statut=?, est_vedette=?, image_principale=?, slug=?
              WHERE id=?'
         );
-        // i  i  s      i     d    i          s         s             i         s       s            s       i           s                s    i
-        $stmt->bind_param('iisiidssisssissi',
+        $stmt->bind_param('iisiidssissssiisssissi',
             $d['marque_id'],
             $d['modele_id'],
             $d['modele'],
@@ -181,6 +267,12 @@ class Voiture
             $d['transmission'],
             $d['puissance'],
             $d['couleur'],
+            $d['motorisation'],
+            $d['finition'],
+            $d['portes'],
+            $d['places'],
+            $d['date_mise_circulation'],
+            $d['date_immatriculation'],
             $d['description'],
             $d['statut'],
             $d['est_vedette'],
@@ -212,5 +304,27 @@ class Voiture
         $stmt->bind_param('si', $statut, $id);
         $stmt->execute();
         $stmt->close();
+    }
+
+    public static function createMarque(string $nom): int
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare('INSERT INTO marques (nom) VALUES (?)');
+        $stmt->bind_param('s', $nom);
+        $stmt->execute();
+        $id = (int)$db->insert_id;
+        $stmt->close();
+        return $id;
+    }
+
+    public static function createModele(int $marqueId, string $nom): int
+    {
+        $db   = Database::getConnection();
+        $stmt = $db->prepare('INSERT INTO modeles (marque_id, nom) VALUES (?,?)');
+        $stmt->bind_param('is', $marqueId, $nom);
+        $stmt->execute();
+        $id = (int)$db->insert_id;
+        $stmt->close();
+        return $id;
     }
 }
