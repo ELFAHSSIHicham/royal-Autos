@@ -9,10 +9,12 @@ class AdminVoitureCreateController implements ControllerInterface
     public function control(): void
     {
         SessionGuard::requireAdmin();
-        $errors = $_SESSION['form_errors'] ?? [];
-        $old    = $_SESSION['form_old']    ?? [];
+        $errors  = $_SESSION['form_errors'] ?? [];
+        $old     = $_SESSION['form_old']    ?? [];
         unset($_SESSION['form_errors'], $_SESSION['form_old']);
-        $mode = 'create';
+        $voiture = [];
+        $mode    = 'create';
+        $marques = \Models\Voiture\Voiture::getMarques();
         include __DIR__ . '/../../Views/Admin/voiture-form.php';
     }
 

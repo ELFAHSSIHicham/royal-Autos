@@ -26,7 +26,7 @@ header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-src https://js.stripe.com;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.stripe.com;");
 
 // Session sécurisée
 if (session_status() === PHP_SESSION_NONE) {
@@ -45,13 +45,13 @@ if (session_status() === PHP_SESSION_NONE) {
 if (
     isset($_SERVER['HTTP_HOST']) &&
     (str_contains($_SERVER['HTTP_HOST'], 'localhost') ||
-     str_contains($_SERVER['HTTP_HOST'], '127.0.0.1'))
+        str_contains($_SERVER['HTTP_HOST'], '127.0.0.1'))
 ) {
     ini_set('display_errors', '1');
     error_reporting(E_ALL);
 }
 
-// ── Imports ──────────────────────────────────────────────────────────────────
+// ── Imports ───────────────────────────────────────────────────────────────────
 use Controllers\Home\HomeController;
 use Controllers\Catalogue\CatalogueController;
 use Controllers\Catalogue\DetailVoitureController;
@@ -74,8 +74,10 @@ use Controllers\Admin\AdminVoitureDeleteController;
 use Controllers\Admin\AdminReservationsController;
 use Controllers\Catalogue\ModelesByMarqueController;
 use Controllers\Admin\AdminImmatController;
+use Controllers\Admin\AdminMarqueCreatePost;
+use Controllers\Admin\AdminModeleCreatePost;
 
-// ── Stripe webhook (doit lire php://input AVANT session) ─────────────────────
+// ── Stripe webhook (doit lire php://input AVANT session) ──────────────────────
 $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
@@ -84,7 +86,7 @@ if ($path === '/stripe/webhook' && $method === 'POST') {
     exit();
 }
 
-// ── Succès / annulation Stripe (pages simples sans BaseView) ─────────────────
+// ── Succès / annulation Stripe ────────────────────────────────────────────────
 if ($path === '/reservation/succes' && $method === 'GET') {
     $PAGE_TITLE = 'Réservation confirmée — Royal Autos';
     include __DIR__ . '/../src/Views/Base/header.php';
@@ -100,7 +102,7 @@ if ($path === '/reservation/annulee' && $method === 'GET') {
     exit();
 }
 
-// ── Uploads (proxy simple pour storage/uploads) ───────────────────────────────
+// ── Uploads ───────────────────────────────────────────────────────────────────
 if (str_starts_with($path, '/uploads/')) {
     $file = __DIR__ . '/../storage/uploads/' . basename($path);
     if (file_exists($file)) {
@@ -111,7 +113,7 @@ if (str_starts_with($path, '/uploads/')) {
     }
 }
 
-// ── Registry des controllers ────────────────────────────────────��────────────
+// ── Registry des controllers ──────────────────────────────────────────────────
 $controllers = [
     // Public
     new HomeController(),
@@ -138,9 +140,11 @@ $controllers = [
     new AdminVoitureDeleteController(),
     new AdminReservationsController(),
     new AdminImmatController(),
+    new AdminMarqueCreatePost(),
+    new AdminModeleCreatePost(),
 ];
 
-// ── Router ───────────────────────────────────────────────────────────────────
+// ── Router ────────────────────────────────────────────────────────────────────
 foreach ($controllers as $controller) {
     if ($controller::support($path, $method)) {
         error_log(sprintf('[RoyalAutos] %s %s → %s', $method, $path, $controller::class));
@@ -149,7 +153,7 @@ foreach ($controllers as $controller) {
     }
 }
 
-// ── 404 Fallback ─────────────────────────────────────────────────────────────
+// ── 404 Fallback ──────────────────────────────────────────────────────────────
 http_response_code(404);
 $PAGE_TITLE    = 'Page introuvable — Royal Autos';
 $CURRENT_PATH  = $path;

@@ -2,7 +2,7 @@
 namespace Controllers\Admin;
 
 use Controllers\ControllerInterface;
-use Shared\{CsrfGuard, SessionGuard, Sanitizer, InputValidator};
+use Shared\{CsrfGuard, SessionGuard, Sanitizer};
 use Models\Voiture\Voiture;
 
 class AdminVoitureCreatePost implements ControllerInterface
@@ -12,24 +12,32 @@ class AdminVoitureCreatePost implements ControllerInterface
         SessionGuard::requireAdmin();
         CsrfGuard::check();
 
-        $d = $this->extract();
-        $v = new InputValidator();
-        $v->required('marque_id', (string)$d['marque_id'], 'Marque')
-            ->required('modele',    $d['modele'],            'Modèle')
-            ->positiveNumber('prix',   $d['prix'])
-            ->positiveNumber('annee',  $d['annee']);
+        $statuts = ['disponible', 'reserve', 'vendu', 'en_preparation'];
+        $d = [
+            'marque_id'             => Sanitizer::int($_POST['marque_id']             ?? 0),
+            'modele_id'             => Sanitizer::int($_POST['modele_id']             ?? 0) ?: null,
+            'modele'                => Sanitizer::str($_POST['modele']                ?? ''),
+            'annee'                 => Sanitizer::int($_POST['annee']                 ?? 0),
+            'prix'                  => Sanitizer::float($_POST['prix']                ?? 0),
+            'kilometrage'           => Sanitizer::int($_POST['kilometrage']           ?? 0),
+            'carburant'             => Sanitizer::str($_POST['carburant']             ?? 'Essence'),
+            'transmission'          => Sanitizer::str($_POST['transmission']          ?? 'Manuelle'),
+            'puissance'             => Sanitizer::int($_POST['puissance']             ?? 0) ?: null,
+            'couleur'               => Sanitizer::str($_POST['couleur']               ?? ''),
+            'motorisation'          => Sanitizer::str($_POST['motorisation']          ?? ''),
+            'finition'              => Sanitizer::str($_POST['finition']              ?? ''),
+            'portes'                => Sanitizer::int($_POST['portes']                ?? 5),
+            'places'                => Sanitizer::int($_POST['places']                ?? 5),
+            'date_mise_circulation' => Sanitizer::str($_POST['date_mise_circulation'] ?? '') ?: null,
+            'date_immatriculation'  => Sanitizer::str($_POST['date_immatriculation']  ?? '') ?: null,
+            'description'           => Sanitizer::str($_POST['description']           ?? ''),
+            'statut'                => in_array($_POST['statut'] ?? '', $statuts) ? $_POST['statut'] : 'disponible',
+            'est_vedette'           => isset($_POST['est_vedette']) ? 1 : 0,
+            'image_principale'      => '',
+            'slug'                  => '',
+        ];
 
-        if (!$v->isValid()) {
-            $_SESSION['form_errors'] = $v->getErrors();
-            $_SESSION['form_old']    = $_POST;
-            header('Location: /admin/voitures/nouveau');
-            exit();
-        }
-
-        // Upload image
-        $d['image_principale'] = $this->handleUpload();
-
-        // Slug basé sur marque (nom) + modele + annee
+        // Slug
         $marques   = Voiture::getMarques();
         $nomMarque = '';
         foreach ($marques as $m) {
@@ -37,47 +45,52 @@ class AdminVoitureCreatePost implements ControllerInterface
         }
         $d['slug'] = Sanitizer::slug($nomMarque . '-' . $d['modele'] . '-' . $d['annee']);
 
-        // ✅ INSERTION en base
-        Voiture::create($d);
+        // Créer la voiture sans image principale pour l'instant
+        $id = Voiture::create($d); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id."
+ FILES=".print_r($_FILES,true)."
+", FILE_APPEND);
 
-        $_SESSION['flash_success'] = 'Voiture ajoutée avec succès.';
+        // Sauvegarder les photos uploadées
+        $photos = $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []);
+        $photos = array_slice($photos, 0, 40);
+
+        $premiereUrl = Voiture::saveNewImages($id, $photos, 1);
+
+        // Définir l'image principale
+        $imagePrincipale = Sanitizer::str($_POST['image_principale_url'] ?? '');
+        if (!$imagePrincipale && $premiereUrl) {
+            $imagePrincipale = $premiereUrl;
+        }
+        if ($imagePrincipale) {
+            Voiture::update($id, array_merge($d, ['image_principale' => $imagePrincipale]));
+        }
+
+        $_SESSION['flash_success'] = 'Véhicule ajouté avec succès.';
         header('Location: /admin/voitures');
         exit();
     }
 
-    private function extract(): array
+    /**
+     * PHP envoie $_FILES['nouvelles_photos'] sous forme de tableau inversé.
+     * Cette méthode le remet dans le bon sens : un tableau de fichiers.
+     */
+    private function normaliseFiles(array $files): array
     {
-        return [
-            'marque_id'       => Sanitizer::int($_POST['marque_id']    ?? 0),
-            'modele_id'       => Sanitizer::int($_POST['modele_id']    ?? 0) ?: null,
-            'modele'          => Sanitizer::str($_POST['modele']       ?? ''),
-            'annee'           => Sanitizer::int($_POST['annee']        ?? 0),
-            'prix'            => Sanitizer::float($_POST['prix']       ?? 0),
-            'kilometrage'     => Sanitizer::int($_POST['kilometrage']  ?? 0),
-            'carburant'       => Sanitizer::str($_POST['carburant']    ?? 'Essence'),
-            'transmission'    => Sanitizer::str($_POST['transmission'] ?? 'Manuelle'),
-            'puissance'       => Sanitizer::int($_POST['puissance']    ?? 0),
-            'couleur'         => Sanitizer::str($_POST['couleur']      ?? ''),
-            'description'     => Sanitizer::str($_POST['description']  ?? ''),
-            'statut'          => in_array($_POST['statut'] ?? '', ['disponible','reserve','vendu','maintenance'])
-                ? $_POST['statut']
-                : 'disponible',
-            'est_vedette'     => isset($_POST['est_vedette']) ? 1 : 0,
-            'image_principale'=> '',
-            'slug'            => '',
-        ];
-    }
-
-    private function handleUpload(): string
-    {
-        if (empty($_FILES['image']['tmp_name'])) return '';
-        $ext   = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        $allow = ['jpg','jpeg','png','webp'];
-        if (!in_array($ext, $allow, true)) return '';
-        $name  = uniqid('car_', true) . '.' . $ext;
-        $dest  = __DIR__ . '/../../../storage/uploads/' . $name;
-        move_uploaded_file($_FILES['image']['tmp_name'], $dest);
-        return '/uploads/' . $name;
+        if (empty($files['tmp_name'])) return [];
+        $result = [];
+        $count  = is_array($files['tmp_name']) ? count($files['tmp_name']) : 1;
+        if (!is_array($files['tmp_name'])) {
+            return [$files];
+        }
+        for ($i = 0; $i < $count; $i++) {
+            $result[] = [
+                'name'     => $files['name'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error'    => $files['error'][$i],
+                'size'     => $files['size'][$i],
+            ];
+        }
+        return $result;
     }
 
     public static function support(string $path, string $method): bool

@@ -18,11 +18,14 @@ class DetailVoitureController implements ControllerInterface
             return;
         }
 
+        $images = Voiture::getImages((int)$voiture['id']);
+
         $view = new DetailView();
         $view->setData([
             'PAGE_TITLE'   => $voiture['marque'] . ' ' . $voiture['modele'] . ' — Royal Autos',
             'CURRENT_PATH' => '/voiture/' . $slug,
             'voiture'      => $voiture,
+            'images'       => $images,
         ]);
         echo $view->render();
     }

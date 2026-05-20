@@ -37,8 +37,6 @@
         </div>
     </div>
     <div class="topbar-right">
-        <a class="topbar-link" href="#">Mon espace</a>
-        <a class="topbar-link" href="#">Favoris</a>
         <?php if (!empty($_SESSION['admin'])): ?>
             <a class="topbar-link" href="/admin">Administration</a>
         <?php endif; ?>
