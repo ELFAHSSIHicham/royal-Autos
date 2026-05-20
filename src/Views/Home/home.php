@@ -4,33 +4,32 @@
 <div class="hero">
     <div class="hero-main">
 
-        <!-- PHOTO DE FOND (remplace hero-texture + hero-car) -->
         <div class="hero-bg">
-             <img src="/assets/img/hero1.jpg" alt="Royal Autos — Véhicules de prestige">
-             <div class="hero-overlay"></div>
-         </div>
+            <img src="/assets/img/hero1.jpg" alt="Royal Autos — Véhicules de prestige">
+            <div class="hero-overlay"></div>
+        </div>
 
-         <div class="hero-content">
-             <div>
-                 <div class="eyebrow">
-                     <div class="eyebrow-line"></div>
-                     <span class="eyebrow-txt">Montauban · Tarn-et-Garonne · Depuis 2008</span>
-                 </div>
-                 <h1 class="h1">Le meilleur<br>de l'automobile<br><em>à votre portée</em></h1>
-                 <p class="hero-desc">Chaque véhicule est rigoureusement sélectionné, inspecté et garanti. Une expérience d'acquisition à la hauteur de vos exigences.</p>
-                 <div class="hero-btns">
-                     <a href="/catalogue" class="btn-gold">
-                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                         Explorer la collection
-                     </a>
-                     <a href="/contact" class="btn-grey">Nous contacter</a>
-                 </div>
-             </div>
-         </div>
+        <div class="hero-content">
+            <div>
+                <div class="eyebrow">
+                    <div class="eyebrow-line"></div>
+                    <span class="eyebrow-txt">Montauban · Tarn-et-Garonne · Depuis 2008</span>
+                </div>
+                <h1 class="h1">Le meilleur<br>de l'automobile<br><em>à votre portée</em></h1>
+                <p class="hero-desc">Chaque véhicule est rigoureusement sélectionné, inspecté et garanti. Une expérience d'acquisition à la hauteur de vos exigences.</p>
+                <div class="hero-btns">
+                    <a href="/catalogue" class="btn-gold">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        Explorer la collection
+                    </a>
+                    <a href="/contact" class="btn-grey">Nous contacter</a>
+                </div>
+            </div>
+        </div>
 
-     </div>
+    </div>
 
-     <!-- SIDEBAR RECHERCHE -->
+    <!-- SIDEBAR RECHERCHE -->
     <div class="hero-side">
         <div class="side-top">
             <div class="side-title">Trouver un véhicule</div>
@@ -52,8 +51,8 @@
                     </select>
                 </div>
                 <div class="sf">
-                    <div class="sf-lbl">Budget maximum</div>
-                    <input type="number" name="prix_max" class="sf-input" placeholder="100 000 €">
+                    <div class="sf-lbl">Budget maximum (€)</div>
+                    <input type="number" name="prix_max" class="sf-input" placeholder="Ex : 15000">
                 </div>
                 <div class="sf">
                     <div class="sf-lbl">Carburant</div>
@@ -66,22 +65,12 @@
                     </select>
                 </div>
                 <div class="sf">
-                    <div class="sf-lbl">Kilométrage max</div>
-                    <select name="km_max" class="sf-select">
-                        <option value="">Sans limite</option>
-                        <option value="30000">– de 30 000 km</option>
-                        <option value="60000">– de 60 000 km</option>
-                        <option value="100000">– de 100 000 km</option>
-                    </select>
+                    <div class="sf-lbl">Kilométrage max (km)</div>
+                    <input type="number" name="km_max" class="sf-input" placeholder="Ex : 80000">
                 </div>
                 <div class="sf">
                     <div class="sf-lbl">Année minimum</div>
-                    <select name="annee_min" class="sf-select">
-                        <option value="">Toutes années</option>
-                        <?php for ($y = date('Y'); $y >= 2015; $y--): ?>
-                            <option value="<?= $y ?>"><?= $y ?></option>
-                        <?php endfor; ?>
-                    </select>
+                    <input type="number" name="annee_min" class="sf-input" placeholder="Ex : 2018" min="1990" max="<?= date('Y') ?>">
                 </div>
                 <button type="submit" class="search-btn">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -92,7 +81,7 @@
         <div class="side-bottom">
             <div class="ss-stat"><div class="ss-num"><?= $nbVoitures ?? '–' ?></div><div class="ss-lbl">En stock</div></div>
             <div class="ss-stat"><div class="ss-num">7</div><div class="ss-lbl">Marques</div></div>
-            <div class="ss-stat"><div class="ss-num">12m</div><div class="ss-lbl">Garantie</div></div>
+            <div class="ss-stat"><div class="ss-num">2008</div><div class="ss-lbl">Depuis</div></div>
         </div>
     </div>
 </div>
@@ -167,10 +156,10 @@
             <div class="eng-p">Depuis 2008, chaque véhicule est sélectionné avec la même exigence. Parce qu'un achat automobile mérite une confiance absolue.</div>
         </div>
         <div class="eng-items">
-            <div class="ei"><div class="ei-num">01</div><div class="ei-title">Véhicules certifiés</div><div class="ei-desc">Inspection complète 150 points. Historique fourni à l'acheteur.</div></div>
-            <div class="ei"><div class="ei-num">02</div><div class="ei-title">Garantie 12 mois</div><div class="ei-desc">Garantie mécanique complète 12 mois sans franchise.</div></div>
-            <div class="ei"><div class="ei-num">03</div><div class="ei-title">Financement sur-mesure</div><div class="ei-desc">Solutions adaptées avec nos partenaires bancaires. Réponse en 24h.</div></div>
-            <div class="ei"><div class="ei-num">04</div><div class="ei-title">Livraison à domicile</div><div class="ei-desc">Possible dans un rayon de 200 km autour de Montauban.</div></div>
+            <div class="ei"><div class="ei-num">01</div><div class="ei-title">Sélection rigoureuse</div><div class="ei-desc">Chaque véhicule est inspecté avant d'intégrer notre catalogue.</div></div>
+            <div class="ei"><div class="ei-num">02</div><div class="ei-title">Transparence totale</div><div class="ei-desc">Historique, kilométrage et état réel communiqués à l'acheteur.</div></div>
+            <div class="ei"><div class="ei-num">03</div><div class="ei-title">Essai possible</div><div class="ei-desc">Chaque véhicule peut être essayé avant achat, sur rendez-vous.</div></div>
+            <div class="ei"><div class="ei-num">04</div><div class="ei-title">Un interlocuteur dédié</div><div class="ei-desc">Du premier contact à la remise des clés, vous êtes accompagné.</div></div>
         </div>
     </div>
 </div>
