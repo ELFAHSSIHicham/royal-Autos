@@ -45,15 +45,12 @@ class AdminVoitureCreatePost implements ControllerInterface
         }
         $d['slug'] = Sanitizer::slug($nomMarque . '-' . $d['modele'] . '-' . $d['annee']);
 
-        // Créer la voiture sans image principale pour l'instant
-        $id = Voiture::create($d); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id."
- FILES=".print_r($_FILES,true)."
-", FILE_APPEND);
+        // Créer la voiture
+        $id = Voiture::create($d);
 
         // Sauvegarder les photos uploadées
-        $photos = $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []);
-        $photos = array_slice($photos, 0, 40);
-
+        $photos      = $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []);
+        $photos      = array_slice($photos, 0, 40);
         $premiereUrl = Voiture::saveNewImages($id, $photos, 1);
 
         // Définir l'image principale
@@ -70,19 +67,12 @@ class AdminVoitureCreatePost implements ControllerInterface
         exit();
     }
 
-    /**
-     * PHP envoie $_FILES['nouvelles_photos'] sous forme de tableau inversé.
-     * Cette méthode le remet dans le bon sens : un tableau de fichiers.
-     */
     private function normaliseFiles(array $files): array
     {
         if (empty($files['tmp_name'])) return [];
+        if (!is_array($files['tmp_name'])) return [$files];
         $result = [];
-        $count  = is_array($files['tmp_name']) ? count($files['tmp_name']) : 1;
-        if (!is_array($files['tmp_name'])) {
-            return [$files];
-        }
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = 0, $count = count($files['tmp_name']); $i < $count; $i++) {
             $result[] = [
                 'name'     => $files['name'][$i],
                 'tmp_name' => $files['tmp_name'][$i],

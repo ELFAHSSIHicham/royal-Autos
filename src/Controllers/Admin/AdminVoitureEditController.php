@@ -14,11 +14,17 @@ class AdminVoitureEditController implements ControllerInterface
         $voiture = Voiture::getById($id);
         if (!$voiture) { http_response_code(404); include __DIR__ . '/../../Views/Errors/404.php'; return; }
 
-        $errors  = $_SESSION['form_errors'] ?? [];
-        $old     = $_SESSION['form_old']    ?? $voiture;
+        $errors = $_SESSION['form_errors'] ?? [];
+        $old    = $_SESSION['form_old']    ?? $voiture;
         unset($_SESSION['form_errors'], $_SESSION['form_old']);
 
-        $images  = Voiture::getImages($id);
+        $images = Voiture::getImages($id);
+
+        if (empty($images) && !empty($voiture['image_principale'])) {
+            Voiture::addImage($id, $voiture['image_principale'], 1);
+            $images = Voiture::getImages($id);
+        }
+
         $mode    = 'edit';
         $marques = Voiture::getMarques();
 

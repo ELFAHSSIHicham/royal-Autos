@@ -60,9 +60,7 @@ class AdminVoitureEditPost implements ControllerInterface
         $photosRestantes = count(Voiture::getImages($id));
         $photos          = $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []);
         $photos          = array_slice($photos, 0, max(0, 40 - $photosRestantes));
-        $premiereUrl     = Voiture::saveNewImages($id, $photos, $photosRestantes + 1); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id." PHOTOS=".count($photos)." FILES=".print_r($_FILES,true)."
-", FILE_APPEND); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id." PHOTOS=".count($photos)." FILES=".print_r($_FILES,true)."
-", FILE_APPEND);
+        $premiereUrl     = Voiture::saveNewImages($id, $photos, $photosRestantes + 1);
 
         // Définir l'image principale
         $imagePrincipale = Sanitizer::str($_POST['image_principale_url'] ?? '');
@@ -70,8 +68,7 @@ class AdminVoitureEditPost implements ControllerInterface
             $imagePrincipale = $premiereUrl;
         }
         if (!$imagePrincipale) {
-            // Prendre la première image restante en BDD
-            $remaining = Voiture::getImages($id);
+            $remaining       = Voiture::getImages($id);
             $imagePrincipale = $remaining[0]['url'] ?? '';
         }
         $d['image_principale'] = $imagePrincipale;
@@ -88,8 +85,7 @@ class AdminVoitureEditPost implements ControllerInterface
         if (empty($files['tmp_name'])) return [];
         if (!is_array($files['tmp_name'])) return [$files];
         $result = [];
-        $count  = count($files['tmp_name']);
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = 0, $count = count($files['tmp_name']); $i < $count; $i++) {
             $result[] = [
                 'name'     => $files['name'][$i],
                 'tmp_name' => $files['tmp_name'][$i],
