@@ -9,7 +9,9 @@ class DetailVoitureController implements ControllerInterface
 {
     public function control(): void
     {
-        $slug    = trim($_GET['slug'] ?? '');
+        $uri  = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+        $slug = trim(substr($uri, strlen('/voiture/')));
+
         $voiture = $slug ? Voiture::getBySlug($slug) : null;
 
         if (!$voiture) {

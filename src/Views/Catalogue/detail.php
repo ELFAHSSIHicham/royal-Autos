@@ -107,7 +107,7 @@
                     <a href="/contact" class="btn-grey" style="display:flex;justify-content:center;text-decoration:none">Poser une question</a>
 
                     <div style="margin-top:20px;display:flex;flex-direction:column;gap:9px">
-                        <?php foreach (['Inspection 150 points','Garantie 12 mois','Reprise possible','Financement disponible'] as $e): ?>
+                        <?php foreach (['Paiement sécurisé en ligne','Photos vérifiées','Contact direct avec le garage'] as $e): ?>
                             <div style="display:flex;align-items:center;gap:8px;font-size:9px;color:#8a8a8a">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
                                 <?= $e ?>
