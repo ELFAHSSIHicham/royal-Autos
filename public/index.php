@@ -26,7 +26,7 @@ header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.stripe.com;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.stripe.com;");
 
 // Session sécurisée
 if (session_status() === PHP_SESSION_NONE) {
@@ -55,6 +55,8 @@ if (
 use Controllers\Home\HomeController;
 use Controllers\Catalogue\CatalogueController;
 use Controllers\Catalogue\DetailVoitureController;
+use Controllers\Catalogue\ModelesByMarqueController;
+use Controllers\Catalogue\ApiCountController;
 use Controllers\Contact\ContactController;
 use Controllers\Contact\ContactPost;
 use Controllers\Legal\MentionsLegalesController;
@@ -72,7 +74,6 @@ use Controllers\Admin\AdminVoitureEditController;
 use Controllers\Admin\AdminVoitureEditPost;
 use Controllers\Admin\AdminVoitureDeleteController;
 use Controllers\Admin\AdminReservationsController;
-use Controllers\Catalogue\ModelesByMarqueController;
 use Controllers\Admin\AdminImmatController;
 use Controllers\Admin\AdminMarqueCreatePost;
 use Controllers\Admin\AdminModeleCreatePost;
@@ -120,6 +121,7 @@ $controllers = [
     new CatalogueController(),
     new DetailVoitureController(),
     new ModelesByMarqueController(),
+    new ApiCountController(),
     new ContactController(),
     new ContactPost(),
     new MentionsLegalesController(),
