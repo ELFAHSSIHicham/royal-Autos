@@ -83,16 +83,20 @@ $images  = $images  ?? [];
         $action = $mode === 'edit'
                 ? '/admin/voitures/modifier/' . (int)($voiture['id'] ?? 0)
                 : '/admin/voitures/nouveau';
+
         $v = function(string $champ) use ($old, $voiture): string {
             return htmlspecialchars((string)($old[$champ] ?? $voiture[$champ] ?? ''));
         };
+
         $marques         = \Models\Voiture\Voiture::getMarques();
         $currentMarqueId = (int)($old['marque_id'] ?? $voiture['marque_id'] ?? 0);
         $currentModeleId = (int)($old['modele_id'] ?? $voiture['modele_id'] ?? 0);
+
         $dateMC  = $old['date_mise_circulation'] ?? $voiture['date_mise_circulation'] ?? '';
         $dateIM  = $old['date_immatriculation']  ?? $voiture['date_immatriculation']  ?? '';
         $dateMCf = ($dateMC && strtotime($dateMC)) ? date('d/m/Y', strtotime($dateMC)) : '';
         $dateIMf = ($dateIM && strtotime($dateIM)) ? date('d/m/Y', strtotime($dateIM)) : '';
+
         $imagePrincipale = $voiture['image_principale'] ?? '';
         $nbImagesExist   = count($images);
         $maxPhotos       = 40;
@@ -106,7 +110,8 @@ $images  = $images  ?? [];
             <div style="background:#f9f6ee;border:1px solid #e8d98a;border-radius:8px;padding:16px;margin-bottom:24px">
                 <label style="font-weight:600;display:block;margin-bottom:8px">🔍 Pré-remplir via immatriculation</label>
                 <div style="display:flex;gap:8px">
-                    <input type="text" id="immat-lookup" placeholder="AB-123-CD" maxlength="9" style="flex:1;text-transform:uppercase" class="sf-input">
+                    <input type="text" id="immat-lookup" placeholder="AB-123-CD" maxlength="9"
+                           style="flex:1;text-transform:uppercase" class="sf-input">
                     <button type="button" id="btn-immat-lookup" class="btn-gold">Rechercher</button>
                 </div>
                 <div id="immat-status" style="display:none;margin-top:8px;font-size:.85rem"></div>
@@ -117,6 +122,7 @@ $images  = $images  ?? [];
             <div style="background:#fff;padding:24px;margin-bottom:16px">
                 <div style="font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;margin-bottom:18px">Informations principales</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+
                     <div>
                         <div class="sf-row">
                             <div class="sf">
@@ -124,16 +130,19 @@ $images  = $images  ?? [];
                                 <select name="marque_id" id="select-marque" class="sf-select" required>
                                     <option value="">— Choisir —</option>
                                     <?php foreach ($marques as $m): ?>
-                                        <option value="<?= $m['id'] ?>" <?= $currentMarqueId === (int)$m['id'] ? 'selected' : '' ?>><?= htmlspecialchars($m['nom']) ?></option>
+                                        <option value="<?= $m['id'] ?>" <?= $currentMarqueId === (int)$m['id'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($m['nom']) ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="btn-plus-wrap">
                                 <span class="sf-lbl-ghost">.</span>
-                                <button type="button" class="btn-plus" onclick="openModal('marque')">+</button>
+                                <button type="button" class="btn-plus" title="Ajouter une marque" onclick="openModal('marque')">+</button>
                             </div>
                         </div>
                     </div>
+
                     <div>
                         <div class="sf-row">
                             <div class="sf">
@@ -144,14 +153,17 @@ $images  = $images  ?? [];
                             </div>
                             <div class="btn-plus-wrap">
                                 <span class="sf-lbl-ghost">.</span>
-                                <button type="button" class="btn-plus" onclick="openModal('modele')">+</button>
+                                <button type="button" class="btn-plus" title="Ajouter un modèle" onclick="openModal('modele')">+</button>
                             </div>
                         </div>
                     </div>
+
                     <div class="sf">
                         <div class="sf-lbl">Modèle (texte libre)</div>
-                        <input type="text" name="modele" id="input-modele" class="sf-input" value="<?= $v('modele') ?>" placeholder="Rempli automatiquement ou saisir manuellement">
+                        <input type="text" name="modele" id="input-modele" class="sf-input"
+                               value="<?= $v('modele') ?>" placeholder="Rempli automatiquement ou saisir manuellement">
                     </div>
+
                     <div class="sf"><div class="sf-lbl">Année *</div>
                         <input type="number" name="annee" class="sf-input" value="<?= $v('annee') ?>" min="1900" max="<?= date('Y') ?>" required>
                     </div>
@@ -165,10 +177,12 @@ $images  = $images  ?? [];
                         <input type="number" name="puissance" class="sf-input" value="<?= $v('puissance') ?>">
                     </div>
                     <div class="sf"><div class="sf-lbl">Première mise en circulation (jj/mm/aaaa)</div>
-                        <input type="text" name="date_mise_circulation" class="sf-input sf-date" placeholder="jj/mm/aaaa" maxlength="10" value="<?= htmlspecialchars($dateMCf) ?>">
+                        <input type="text" name="date_mise_circulation" class="sf-input sf-date"
+                               placeholder="jj/mm/aaaa" maxlength="10" value="<?= htmlspecialchars($dateMCf) ?>">
                     </div>
                     <div class="sf"><div class="sf-lbl">Date 1ère immatriculation (jj/mm/aaaa)</div>
-                        <input type="text" name="date_immatriculation" class="sf-input sf-date" placeholder="jj/mm/aaaa" maxlength="10" value="<?= htmlspecialchars($dateIMf) ?>">
+                        <input type="text" name="date_immatriculation" class="sf-input sf-date"
+                               placeholder="jj/mm/aaaa" maxlength="10" value="<?= htmlspecialchars($dateIMf) ?>">
                     </div>
                 </div>
             </div>
@@ -216,14 +230,20 @@ $images  = $images  ?? [];
                     </div>
                     <div class="sf"><div class="sf-lbl">Statut</div>
                         <select name="statut" class="sf-select">
-                            <?php foreach (['disponible'=>'Disponible','reserve'=>'Réservé','vendu'=>'Vendu','en_preparation'=>'En préparation'] as $sVal => $sLabel): ?>
+                            <?php foreach ([
+                                                   'disponible'     => 'Disponible',
+                                                   'reserve'        => 'Réservé',
+                                                   'vendu'          => 'Vendu',
+                                                   'en_preparation' => 'En préparation',
+                                           ] as $sVal => $sLabel): ?>
                                 <option value="<?= $sVal ?>" <?= $v('statut') === $sVal ? 'selected' : '' ?>><?= $sLabel ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                 </div>
                 <div style="margin-top:16px;display:flex;align-items:center;gap:8px">
-                    <input type="checkbox" name="est_vedette" id="vedette" value="1" <?= (($old['est_vedette'] ?? $voiture['est_vedette'] ?? 0) == 1) ? 'checked' : '' ?>>
+                    <input type="checkbox" name="est_vedette" id="vedette" value="1"
+                            <?= (($old['est_vedette'] ?? $voiture['est_vedette'] ?? 0) == 1) ? 'checked' : '' ?>>
                     <label for="vedette" style="font-size:10px;color:#5a5a5a">Mettre en vedette (affiché sur la page d'accueil)</label>
                 </div>
             </div>
@@ -244,6 +264,7 @@ $images  = $images  ?? [];
                     </div>
                     <div style="font-size:9px;color:#aaa">Cliquez sur une photo pour la définir comme principale</div>
                 </div>
+
                 <?php if (!empty($images)): ?>
                     <div class="gallery-grid" id="existing-gallery">
                         <?php foreach ($images as $img): ?>
@@ -260,11 +281,14 @@ $images  = $images  ?? [];
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+
                 <div class="upload-zone" id="upload-zone" onclick="document.getElementById('input-photos').click()">
                     <p>Glisser-déposer ou <span>cliquer pour ajouter des photos</span></p>
                     <p style="margin-top:4px">JPG, PNG, WEBP — max 5 Mo par photo — max <?= $maxPhotos ?> photos au total</p>
-                    <input type="file" id="input-photos" name="nouvelles_photos[]" multiple accept="image/jpeg,image/png,image/webp">
+                    <input type="file" id="input-photos" name="nouvelles_photos[]" multiple
+                           accept="image/jpeg,image/png,image/webp">
                 </div>
+
                 <div id="preview-grid"></div>
             </div>
 
@@ -317,20 +341,23 @@ $images  = $images  ?? [];
 </div>
 
 <script>
-    const MAX_PHOTOS  = <?= $maxPhotos ?>;
-    let   nbExistant  = <?= $nbImagesExist ?>;
+    const MAX_PHOTOS   = <?= $maxPhotos ?>;
+    let   nbExistant   = <?= $nbImagesExist ?>;
     let   filesValides = [];
 
+    /* ── Marque → Modèles dynamiques ── */
     document.addEventListener('DOMContentLoaded', () => {
         const selMarque   = document.getElementById('select-marque');
         const selModele   = document.getElementById('select-modele');
         const inputModele = document.getElementById('input-modele');
+
         if (selMarque.value) chargeModeles(selMarque.value, <?= $currentModeleId ?>);
         selMarque.addEventListener('change', () => chargeModeles(selMarque.value, 0));
         selModele.addEventListener('change', () => {
             const opt = selModele.options[selModele.selectedIndex];
             if (opt && opt.value) inputModele.value = opt.text;
         });
+
         async function chargeModeles(marqueId, selectedId) {
             if (!marqueId) { selModele.innerHTML = '<option value="">— Choisir la marque d\'abord —</option>'; return; }
             const res     = await fetch(`/api/modeles?marque_id=${marqueId}`);
@@ -346,116 +373,174 @@ $images  = $images  ?? [];
         window._chargeModeles = chargeModeles;
     });
 
+    /* ── Upload photos ── */
     const inputPhotos = document.getElementById('input-photos');
     const previewGrid = document.getElementById('preview-grid');
     const photoCount  = document.getElementById('photo-count');
 
     inputPhotos.addEventListener('change', function () {
-        const dispo = MAX_PHOTOS - nbExistant - filesValides.length;
+        const dispo       = MAX_PHOTOS - nbExistant - filesValides.filter(f => f !== null).length;
         const selectionnes = Array.from(this.files);
-        if (selectionnes.length > dispo) alert(`Vous pouvez ajouter au maximum ${dispo} photo(s) supplémentaire(s).`);
+
+        if (selectionnes.length > dispo) {
+            alert(`Vous pouvez ajouter au maximum ${dispo} photo(s) supplémentaire(s) (limite : ${MAX_PHOTOS} au total).`);
+        }
+
         selectionnes.slice(0, dispo).forEach(file => {
             if (file.size > 5 * 1024 * 1024) { alert(`"${file.name}" dépasse 5 Mo, ignoré.`); return; }
             filesValides.push(file);
             ajouterPreview(file, filesValides.length - 1);
         });
-        updateCount(); rebuildInput(); this.value = '';
+
+        updateCount();
+        // NE PAS vider this.value ici — les fichiers restent dans filesValides et seront injectés au submit
     });
 
+    /* ── Drag & drop ── */
     const zone = document.getElementById('upload-zone');
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#c9a84c'; });
     zone.addEventListener('dragleave', () => { zone.style.borderColor = '#d0d0d0'; });
     zone.addEventListener('drop', e => {
-        e.preventDefault(); zone.style.borderColor = '#d0d0d0';
-        const dispo = MAX_PHOTOS - nbExistant - filesValides.length;
+        e.preventDefault();
+        zone.style.borderColor = '#d0d0d0';
+        const dispo = MAX_PHOTOS - nbExistant - filesValides.filter(f => f !== null).length;
         Array.from(e.dataTransfer.files).slice(0, dispo).forEach(file => {
             if (file.size > 5 * 1024 * 1024) { alert(`"${file.name}" dépasse 5 Mo, ignoré.`); return; }
-            filesValides.push(file); ajouterPreview(file, filesValides.length - 1);
+            filesValides.push(file);
+            ajouterPreview(file, filesValides.length - 1);
         });
-        updateCount(); rebuildInput();
+        updateCount();
     });
 
     function ajouterPreview(file, index) {
         const reader = new FileReader();
         reader.onload = e => {
             const div = document.createElement('div');
-            div.className = 'preview-item'; div.dataset.index = index;
-            div.innerHTML = `<img src="${e.target.result}" alt=""><button type="button" class="del-preview" onclick="supprimerPreview(${index}, this)">×</button>`;
+            div.className     = 'preview-item';
+            div.dataset.index = index;
+            div.innerHTML     = `<img src="${e.target.result}" alt="">
+            <button type="button" class="del-preview" onclick="supprimerPreview(${index}, this)">×</button>`;
             previewGrid.appendChild(div);
         };
         reader.readAsDataURL(file);
     }
-    function supprimerPreview(index, btn) { filesValides[index] = null; btn.closest('.preview-item').remove(); updateCount(); rebuildInput(); }
-    function updateCount() { photoCount.textContent = `(${nbExistant + filesValides.filter(f=>f!==null).length}/${MAX_PHOTOS})`; }
-    function rebuildInput() { const dt = new DataTransfer(); filesValides.filter(f=>f!==null).forEach(f=>dt.items.add(f)); inputPhotos.files = dt.files; }
 
+    function supprimerPreview(index, btn) {
+        filesValides[index] = null;
+        btn.closest('.preview-item').remove();
+        updateCount();
+    }
+
+    function updateCount() {
+        const nbNew = filesValides.filter(f => f !== null).length;
+        photoCount.textContent = `(${nbExistant + nbNew}/${MAX_PHOTOS})`;
+    }
+
+    /* ── Submit : injecter les fichiers dans l'input PUIS envoyer ── */
+    document.getElementById('voiture-form').addEventListener('submit', function () {
+        // Injecter les fichiers sélectionnés dans l'input file via DataTransfer
+        const dt = new DataTransfer();
+        filesValides.filter(f => f !== null).forEach(f => dt.items.add(f));
+        inputPhotos.files = dt.files;
+
+        // Convertir les dates jj/mm/aaaa → aaaa-mm-jj pour MySQL
+        document.querySelectorAll('.sf-date').forEach(input => {
+            const parts = input.value.split('/');
+            if (parts.length === 3 && parts[2].length === 4)
+                input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        });
+    });
+
+    /* ── Définir photo principale ── */
     function setPrincipal(url, btn) {
         document.getElementById('image_principale_url').value = url;
         document.querySelectorAll('.principal-badge').forEach(b => {
             const parent = b.closest('.gallery-item');
-            b.replaceWith(Object.assign(document.createElement('button'), { type:'button', className:'set-principal', textContent:'Principale', onclick: function(){ setPrincipal(parent.querySelector('img').src, this); } }));
+            b.replaceWith(Object.assign(document.createElement('button'), {
+                type: 'button', className: 'set-principal',
+                textContent: 'Principale',
+                onclick: function(){ setPrincipal(parent.querySelector('img').src, this); }
+            }));
         });
-        const span = document.createElement('span'); span.className = 'principal-badge'; span.textContent = 'Principale'; btn.replaceWith(span);
+        const span = document.createElement('span');
+        span.className = 'principal-badge'; span.textContent = 'Principale';
+        btn.replaceWith(span);
     }
-    function deleteImage(id, btn) { if (!confirm('Supprimer cette photo ?')) return; btn.closest('.gallery-item').remove(); nbExistant--; updateCount(); }
 
+    /* ── Supprimer une image existante ── */
+    function deleteImage(id, btn) {
+        if (!confirm('Supprimer cette photo ?')) return;
+        btn.closest('.gallery-item').remove();
+        nbExistant--;
+        updateCount();
+    }
+
+    /* ── Masque date jj/mm/aaaa + validation ── */
     document.querySelectorAll('.sf-date').forEach(input => {
         input.addEventListener('input', function () {
-            let v = this.value.replace(/\D/g,'').substring(0,8), out = '';
-            if (v.length >= 1) out = v.substring(0,2);
-            if (v.length >= 3) out += '/' + v.substring(2,4);
-            if (v.length >= 5) out += '/' + v.substring(4,8);
+            let v   = this.value.replace(/\D/g, '').substring(0, 8);
+            let out = '';
+            if (v.length >= 1) out = v.substring(0, 2);
+            if (v.length >= 3) out += '/' + v.substring(2, 4);
+            if (v.length >= 5) out += '/' + v.substring(4, 8);
             this.value = out;
         });
         input.addEventListener('blur', function () {
-            const val = this.value; if (!val) return;
+            const val = this.value;
+            if (!val) return;
             const parts = val.split('/');
-            if (parts.length !== 3 || parts[2].length !== 4) { alert('Date incomplète. Format : jj/mm/aaaa'); this.value=''; return; }
-            const j=parseInt(parts[0]), m=parseInt(parts[1]), a=parseInt(parts[2]);
-            if (m<1||m>12) { alert('Mois invalide.'); this.value=''; return; }
-            if (a>new Date().getFullYear()) { alert('Année future non autorisée.'); this.value=''; return; }
-            if (a<1900) { alert('Année invalide.'); this.value=''; return; }
-            if (j<1||j>new Date(a,m,0).getDate()) { alert('Jour invalide.'); this.value=''; return; }
+            if (parts.length !== 3 || parts[2].length !== 4) { alert('Date incomplète. Format attendu : jj/mm/aaaa'); this.value = ''; return; }
+            const j = parseInt(parts[0]), m = parseInt(parts[1]), a = parseInt(parts[2]);
+            if (m < 1 || m > 12) { alert('Mois invalide.'); this.value = ''; return; }
+            if (a > new Date().getFullYear()) { alert('Année future non autorisée.'); this.value = ''; return; }
+            if (a < 1900) { alert('Année invalide.'); this.value = ''; return; }
+            const maxJour = new Date(a, m, 0).getDate();
+            if (j < 1 || j > maxJour) { alert(`Jour invalide pour ce mois (max ${maxJour}).`); this.value = ''; return; }
         });
     });
 
-    document.getElementById('voiture-form').addEventListener('submit', function () {
-        document.querySelectorAll('.sf-date').forEach(input => {
-            const parts = input.value.split('/');
-            if (parts.length===3 && parts[2].length===4) input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        });
-    });
-
+    /* ── Modals ── */
     function openModal(type) {
-        if (type==='modele') { const v=document.getElementById('select-marque').value; if(v) document.getElementById('modal-modele-marque').value=v; }
-        document.getElementById('modal-'+type).classList.add('open');
+        if (type === 'modele') {
+            const v = document.getElementById('select-marque').value;
+            if (v) document.getElementById('modal-modele-marque').value = v;
+        }
+        document.getElementById('modal-' + type).classList.add('open');
     }
     function closeModal(type) {
-        document.getElementById('modal-'+type).classList.remove('open');
-        if (type==='marque') { document.getElementById('input-new-marque').value=''; document.getElementById('modal-marque-error').style.display='none'; }
-        else { document.getElementById('input-new-modele').value=''; document.getElementById('modal-modele-error').style.display='none'; }
+        document.getElementById('modal-' + type).classList.remove('open');
+        if (type === 'marque') { document.getElementById('input-new-marque').value = ''; document.getElementById('modal-marque-error').style.display = 'none'; }
+        else                   { document.getElementById('input-new-modele').value = ''; document.getElementById('modal-modele-error').style.display = 'none'; }
     }
     async function submitMarque() {
-        const nom=document.getElementById('input-new-marque').value.trim(), err=document.getElementById('modal-marque-error');
-        if (!nom) { err.textContent='Le nom est obligatoire.'; err.style.display='block'; return; }
-        const fd=new FormData(); fd.append('nom',nom); fd.append('csrf_token',document.querySelector('input[name="csrf_token"]').value);
-        const data=await(await fetch('/admin/marques/nouveau',{method:'POST',body:fd})).json();
-        if (data.error) { err.textContent=data.error; err.style.display='block'; return; }
-        const sel=document.getElementById('select-marque');
-        sel.appendChild(Object.assign(document.createElement('option'),{value:data.id,textContent:data.nom,selected:true}));
-        sel.dispatchEvent(new Event('change'));
-        document.getElementById('modal-modele-marque').appendChild(Object.assign(document.createElement('option'),{value:data.id,textContent:data.nom}));
+        const nom = document.getElementById('input-new-marque').value.trim();
+        const err = document.getElementById('modal-marque-error');
+        if (!nom) { err.textContent = 'Le nom est obligatoire.'; err.style.display = 'block'; return; }
+        const fd = new FormData();
+        fd.append('nom', nom);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        const data = await (await fetch('/admin/marques/nouveau', { method: 'POST', body: fd })).json();
+        if (data.error) { err.textContent = data.error; err.style.display = 'block'; return; }
+        const sel = document.getElementById('select-marque');
+        const opt = Object.assign(document.createElement('option'), { value: data.id, textContent: data.nom, selected: true });
+        sel.appendChild(opt); sel.dispatchEvent(new Event('change'));
+        const opt2 = Object.assign(document.createElement('option'), { value: data.id, textContent: data.nom });
+        document.getElementById('modal-modele-marque').appendChild(opt2);
         closeModal('marque');
     }
     async function submitModele() {
-        const marqueId=document.getElementById('modal-modele-marque').value, nom=document.getElementById('input-new-modele').value.trim(), err=document.getElementById('modal-modele-error');
-        if (!marqueId) { err.textContent='Choisissez une marque.'; err.style.display='block'; return; }
-        if (!nom) { err.textContent='Le nom est obligatoire.'; err.style.display='block'; return; }
-        const fd=new FormData(); fd.append('marque_id',marqueId); fd.append('nom',nom); fd.append('csrf_token',document.querySelector('input[name="csrf_token"]').value);
-        const data=await(await fetch('/admin/modeles/nouveau',{method:'POST',body:fd})).json();
-        if (data.error) { err.textContent=data.error; err.style.display='block'; return; }
-        document.getElementById('select-marque').value=marqueId;
-        await window._chargeModeles(marqueId,data.id);
+        const marqueId = document.getElementById('modal-modele-marque').value;
+        const nom      = document.getElementById('input-new-modele').value.trim();
+        const err      = document.getElementById('modal-modele-error');
+        if (!marqueId) { err.textContent = 'Choisissez une marque.'; err.style.display = 'block'; return; }
+        if (!nom)      { err.textContent = 'Le nom est obligatoire.'; err.style.display = 'block'; return; }
+        const fd = new FormData();
+        fd.append('marque_id', marqueId); fd.append('nom', nom);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        const data = await (await fetch('/admin/modeles/nouveau', { method: 'POST', body: fd })).json();
+        if (data.error) { err.textContent = data.error; err.style.display = 'block'; return; }
+        document.getElementById('select-marque').value = marqueId;
+        await window._chargeModeles(marqueId, data.id);
         closeModal('modele');
     }
 </script>

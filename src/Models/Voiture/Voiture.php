@@ -23,17 +23,17 @@ class Voiture
         $params = [];
         $types  = '';
 
-        if (!empty($f['marque_id']))    { $where[] = 'v.marque_id = ?';       $params[] = (int)$f['marque_id'];      $types .= 'i'; }
-        if (!empty($f['modele_id']))    { $where[] = 'v.modele_id = ?';       $params[] = (int)$f['modele_id'];      $types .= 'i'; }
-        if (!empty($f['carburant']))    { $where[] = 'v.carburant = ?';       $params[] = $f['carburant'];           $types .= 's'; }
-        if (!empty($f['transmission'])) { $where[] = 'v.transmission = ?';   $params[] = $f['transmission'];        $types .= 's'; }
-        if (!empty($f['prix_max']))     { $where[] = 'v.prix <= ?';           $params[] = (float)$f['prix_max'];     $types .= 'd'; }
-        if (!empty($f['prix_min']))     { $where[] = 'v.prix >= ?';           $params[] = (float)$f['prix_min'];     $types .= 'd'; }
-        if (!empty($f['km_max']))       { $where[] = 'v.kilometrage <= ?';    $params[] = (int)$f['km_max'];         $types .= 'i'; }
-        if (!empty($f['annee_min']))    { $where[] = 'v.annee >= ?';          $params[] = (int)$f['annee_min'];      $types .= 'i'; }
-        if (!empty($f['annee_max']))    { $where[] = 'v.annee <= ?';          $params[] = (int)$f['annee_max'];      $types .= 'i'; }
+        if (!empty($f['marque_id']))     { $where[] = 'v.marque_id = ?';     $params[] = (int)$f['marque_id'];    $types .= 'i'; }
+        if (!empty($f['modele_id']))     { $where[] = 'v.modele_id = ?';     $params[] = (int)$f['modele_id'];    $types .= 'i'; }
+        if (!empty($f['carburant']))     { $where[] = 'v.carburant = ?';     $params[] = $f['carburant'];         $types .= 's'; }
+        if (!empty($f['transmission']))  { $where[] = 'v.transmission = ?';  $params[] = $f['transmission'];      $types .= 's'; }
+        if (!empty($f['prix_max']))      { $where[] = 'v.prix <= ?';         $params[] = (float)$f['prix_max'];   $types .= 'd'; }
+        if (!empty($f['prix_min']))      { $where[] = 'v.prix >= ?';         $params[] = (float)$f['prix_min'];   $types .= 'd'; }
+        if (!empty($f['km_max']))        { $where[] = 'v.kilometrage <= ?';  $params[] = (int)$f['km_max'];       $types .= 'i'; }
+        if (!empty($f['annee_min']))     { $where[] = 'v.annee >= ?';        $params[] = (int)$f['annee_min'];    $types .= 'i'; }
+        if (!empty($f['annee_max']))     { $where[] = 'v.annee <= ?';        $params[] = (int)$f['annee_max'];    $types .= 'i'; }
         if (!empty($f['search'])) {
-            $where[] = '(ma.nom LIKE ? OR v.modele LIKE ? OR v.description LIKE ?)';
+            $where[]  = '(ma.nom LIKE ? OR v.modele LIKE ? OR v.description LIKE ?)';
             $s        = '%' . $f['search'] . '%';
             $params[] = $s; $params[] = $s; $params[] = $s;
             $types   .= 'sss';
@@ -182,15 +182,46 @@ class Voiture
         $ordre       = $ordreDepart;
         $allow       = ['jpg', 'jpeg', 'png', 'webp'];
 
+        // Chemin absolu du dossier uploads
+        $uploadDir = dirname(__DIR__, 3) . '/storage/uploads/';
+
+        // Créer le dossier si absent
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        // Vérifier que le dossier est accessible en écriture
+        if (!is_writable($uploadDir)) {
+            error_log('[RoyalAutos] storage/uploads non accessible en écriture : ' . $uploadDir);
+            return null;
+        }
+
         foreach ($files as $file) {
-            if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) continue;
+            // Ignorer les slots vides (input multiple sans fichier)
+            if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
+                if (!empty($file['error']) && $file['error'] !== UPLOAD_ERR_NO_FILE) {
+                    error_log('[RoyalAutos] Erreur upload code ' . $file['error'] . ' fichier ' . ($file['name'] ?? ''));
+                }
+                continue;
+            }
+
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            if (!in_array($ext, $allow, true)) continue;
-            if ($file['size'] > 5 * 1024 * 1024) continue;
+            if (!in_array($ext, $allow, true)) {
+                error_log('[RoyalAutos] Extension refusée : ' . $ext);
+                continue;
+            }
+            if ($file['size'] > 5 * 1024 * 1024) {
+                error_log('[RoyalAutos] Fichier trop lourd : ' . $file['size']);
+                continue;
+            }
 
             $name = uniqid('car_', true) . '.' . $ext;
-            $dest = __DIR__ . '/../../../storage/uploads/' . $name;
-            if (!move_uploaded_file($file['tmp_name'], $dest)) continue;
+            $dest = $uploadDir . $name;
+
+            if (!move_uploaded_file($file['tmp_name'], $dest)) {
+                error_log('[RoyalAutos] move_uploaded_file échoué : ' . $file['tmp_name'] . ' → ' . $dest);
+                continue;
+            }
 
             $url = '/uploads/' . $name;
             self::addImage($voitureId, $url, $ordre++);
