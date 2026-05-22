@@ -23,13 +23,15 @@ class Voiture
         $params = [];
         $types  = '';
 
-        if (!empty($f['marque_id']))  { $where[] = 'v.marque_id = ?';    $params[] = (int)$f['marque_id'];    $types .= 'i'; }
-        if (!empty($f['modele_id']))  { $where[] = 'v.modele_id = ?';    $params[] = (int)$f['modele_id'];    $types .= 'i'; }
-        if (!empty($f['carburant']))  { $where[] = 'v.carburant = ?';    $params[] = $f['carburant'];         $types .= 's'; }
-        if (!empty($f['prix_max']))   { $where[] = 'v.prix <= ?';        $params[] = (float)$f['prix_max'];   $types .= 'd'; }
-        if (!empty($f['prix_min']))   { $where[] = 'v.prix >= ?';        $params[] = (float)$f['prix_min'];   $types .= 'd'; }
-        if (!empty($f['km_max']))     { $where[] = 'v.kilometrage <= ?'; $params[] = (int)$f['km_max'];       $types .= 'i'; }
-        if (!empty($f['annee_min']))  { $where[] = 'v.annee >= ?';       $params[] = (int)$f['annee_min'];    $types .= 'i'; }
+        if (!empty($f['marque_id']))    { $where[] = 'v.marque_id = ?';       $params[] = (int)$f['marque_id'];      $types .= 'i'; }
+        if (!empty($f['modele_id']))    { $where[] = 'v.modele_id = ?';       $params[] = (int)$f['modele_id'];      $types .= 'i'; }
+        if (!empty($f['carburant']))    { $where[] = 'v.carburant = ?';       $params[] = $f['carburant'];           $types .= 's'; }
+        if (!empty($f['transmission'])) { $where[] = 'v.transmission = ?';   $params[] = $f['transmission'];        $types .= 's'; }
+        if (!empty($f['prix_max']))     { $where[] = 'v.prix <= ?';           $params[] = (float)$f['prix_max'];     $types .= 'd'; }
+        if (!empty($f['prix_min']))     { $where[] = 'v.prix >= ?';           $params[] = (float)$f['prix_min'];     $types .= 'd'; }
+        if (!empty($f['km_max']))       { $where[] = 'v.kilometrage <= ?';    $params[] = (int)$f['km_max'];         $types .= 'i'; }
+        if (!empty($f['annee_min']))    { $where[] = 'v.annee >= ?';          $params[] = (int)$f['annee_min'];      $types .= 'i'; }
+        if (!empty($f['annee_max']))    { $where[] = 'v.annee <= ?';          $params[] = (int)$f['annee_max'];      $types .= 'i'; }
         if (!empty($f['search'])) {
             $where[] = '(ma.nom LIKE ? OR v.modele LIKE ? OR v.description LIKE ?)';
             $s        = '%' . $f['search'] . '%';
@@ -111,6 +113,17 @@ class Voiture
         return $res->fetch_all(MYSQLI_ASSOC);
     }
 
+    public static function getMarquesAvecVoitures(): array
+    {
+        $res = Database::getConnection()->query(
+            "SELECT DISTINCT ma.id, ma.nom
+             FROM marques ma
+             INNER JOIN voitures v ON v.marque_id = ma.id AND v.statut = 'disponible'
+             ORDER BY ma.nom ASC"
+        );
+        return $res->fetch_all(MYSQLI_ASSOC);
+    }
+
     public static function countDisponibles(): int
     {
         $row = Database::getConnection()
@@ -121,9 +134,6 @@ class Voiture
 
     // ── Images ────────────────────────────────────────────────────────────────
 
-    /**
-     * Retourne toutes les images d'une voiture, triées par ordre.
-     */
     public static function getImages(int $voitureId): array
     {
         $db   = Database::getConnection();
@@ -137,9 +147,6 @@ class Voiture
         return $rows;
     }
 
-    /**
-     * Ajoute une image pour une voiture.
-     */
     public static function addImage(int $voitureId, string $url, int $ordre = 1): void
     {
         $db   = Database::getConnection();
@@ -151,9 +158,6 @@ class Voiture
         $stmt->close();
     }
 
-    /**
-     * Supprime une image par son ID.
-     */
     public static function deleteImage(int $imageId): void
     {
         $db   = Database::getConnection();
@@ -163,9 +167,6 @@ class Voiture
         $stmt->close();
     }
 
-    /**
-     * Supprime toutes les images d'une voiture.
-     */
     public static function deleteAllImages(int $voitureId): void
     {
         $db   = Database::getConnection();
@@ -175,10 +176,6 @@ class Voiture
         $stmt->close();
     }
 
-    /**
-     * Sauvegarde les nouvelles photos uploadées pour une voiture.
-     * Retourne l'URL de la première photo si aucune image principale n'est définie.
-     */
     public static function saveNewImages(int $voitureId, array $files, int $ordreDepart = 1): ?string
     {
         $premiereUrl = null;
