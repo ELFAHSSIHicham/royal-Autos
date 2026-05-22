@@ -30,7 +30,6 @@
                     <li><a href="/catalogue?marque=BMW">BMW</a></li>
                     <li><a href="/catalogue?marque=Audi">Audi</a></li>
                     <li><a href="/catalogue?marque=Porsche">Porsche</a></li>
-                    <li><a href="/catalogue?marque=Tesla">Tesla</a></li>
                 </ul>
             </div>
             <div class="footer-col">
