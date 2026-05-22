@@ -19,21 +19,21 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10">
                 <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
             </svg>
-            Lun – Sam &nbsp;09:00–12:00/14:00–19:00
+            Lun – Sam &nbsp;·&nbsp; 9h–12h &nbsp;/&nbsp; 14h–19h
         </div>
         <div class="topbar-sep"></div>
         <div class="topbar-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.9 2.11h3a2 2 0 0 1 2 1.72c.128.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.572 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
-            +33 (0)6 52 01 53 54
+            <a href="tel:+33652015354" style="color:inherit;text-decoration:none">06 52 01 53 54</a>
         </div>
         <div class="topbar-sep"></div>
         <div class="topbar-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
             </svg>
-            1279 Avenue de Toulouse, Montauban
+            <a href="https://maps.google.com/?q=1279+Avenue+de+Toulouse,+82000+Montauban" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">1279 Avenue de Toulouse, Montauban</a>
         </div>
     </div>
     <div class="topbar-right">

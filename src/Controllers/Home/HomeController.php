@@ -12,9 +12,10 @@ class HomeController implements ControllerInterface
 
     public function control(): void
     {
-        $vedettes    = Voiture::getVedettes(3);
-        $marques     = Voiture::getMarques();
-        $nbVoitures  = Voiture::countDisponibles();
+        $vedettes     = Voiture::getVedettes(3);
+        $marques      = Voiture::getMarques();
+        $marquesStrip = Voiture::getMarquesAvecVoitures();
+        $nbVoitures   = Voiture::countDisponibles();
 
         $view = new HomeView();
         $view->setData([
@@ -22,6 +23,7 @@ class HomeController implements ControllerInterface
             'CURRENT_PATH' => self::PATH,
             'vedettes'     => $vedettes,
             'marques'      => $marques,
+            'marquesStrip' => $marquesStrip,
             'nbVoitures'   => $nbVoitures,
         ]);
         echo $view->render();

@@ -70,7 +70,7 @@
                 </div>
                 <div class="sf">
                     <div class="sf-lbl">Année minimum</div>
-                    <input type="number" name="annee_min" class="sf-input" placeholder="Ex : 2018" min="1990" max="<?= date('Y') ?>">
+                    <input type="number" name="annee_min" class="sf-input" placeholder="Ex : 2018" min="1960" max="<?= date('Y') ?>">
                 </div>
                 <button type="submit" class="search-btn">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -80,29 +80,59 @@
         </div>
         <div class="side-bottom">
             <div class="ss-stat"><div class="ss-num"><?= $nbVoitures ?? '–' ?></div><div class="ss-lbl">En stock</div></div>
-            <div class="ss-stat"><div class="ss-num">7</div><div class="ss-lbl">Marques</div></div>
+            <div class="ss-stat"><div class="ss-num"><?= count($marques ?? []) ?></div><div class="ss-lbl">Marques</div></div>
             <div class="ss-stat"><div class="ss-num">2008</div><div class="ss-lbl">Depuis</div></div>
         </div>
     </div>
 </div>
 
 
-<!-- BRANDS STRIP -->
-<div class="strip">
-    <div style="display:flex;gap:18px;align-items:center">
-        <?php foreach (['Mercedes-Benz','BMW','Audi','Porsche','Tesla','Volvo','Volkswagen','Renault','Peugeot','Ford','Seat'] as $i => $b): ?>
-            <?php if ($i > 0): ?><span style="color:var(--gold);opacity:.35;font-size:7px">◆</span><?php endif; ?>
-            <span class="brand"><?= $b ?></span>
-        <?php endforeach; ?>
+<!-- BRANDS STRIP — défilement infini -->
+<?php if (!empty($marques)): ?>
+    <div class="strip" style="overflow:hidden;position:relative">
+        <style>
+            .strip-track {
+                display: flex;
+                gap: 28px;
+                align-items: center;
+                width: max-content;
+                animation: marquee-scroll 40s linear infinite;
+                white-space: nowrap;
+            }
+            .strip-track:hover { animation-play-state: paused; }
+            @keyframes marquee-scroll {
+                0%   { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+        </style>
+        <?php
+        $noms  = array_column($marques, 'nom');
+        $items = array_merge($noms, $noms);
+        ?>
+        <div class="strip-track">
+            <?php foreach ($items as $i => $nom): ?>
+                <?php if ($i > 0): ?><span style="color:var(--gold);opacity:.35;font-size:7px">◆</span><?php endif; ?>
+                <span class="brand" style="white-space:nowrap"><?= htmlspecialchars($nom) ?></span>
+            <?php endforeach; ?>
+        </div>
     </div>
-</div>
+<?php endif; ?>
 
 
 <!-- SÉLECTION VEDETTES -->
 <div class="section">
     <div class="sec-head">
         <div>
-            <div class="sec-label">Collection printemps <?= date('Y') ?></div>
+            <?php
+            $mois   = (int)date('n');
+            $saison = match(true) {
+                $mois >= 3 && $mois <= 5  => 'Printemps',
+                $mois >= 6 && $mois <= 8  => 'Été',
+                $mois >= 9 && $mois <= 11 => 'Automne',
+                default                   => 'Hiver',
+            };
+            ?>
+            <div class="sec-label">Collection <?= $saison ?> <?= date('Y') ?></div>
             <div class="sec-h2">Véhicules <em>sélectionnés</em></div>
         </div>
         <a href="/catalogue" class="sec-link">Voir toute la collection →</a>

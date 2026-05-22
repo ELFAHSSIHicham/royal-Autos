@@ -12,13 +12,16 @@ class CatalogueController implements ControllerInterface
     public function control(): void
     {
         $filters = [
-            'marque_id' => $_GET['marque_id'] ?? '',
-            'carburant' => $_GET['carburant'] ?? '',
-            'prix_max'  => $_GET['prix_max']  ?? '',
-            'prix_min'  => $_GET['prix_min']  ?? '',
-            'km_max'    => $_GET['km_max']    ?? '',
-            'annee_min' => $_GET['annee_min'] ?? '',
-            'search'    => $_GET['search']    ?? '',
+            'marque_id'    => $_GET['marque_id']    ?? '',
+            'modele_id'    => $_GET['modele_id']    ?? '',
+            'carburant'    => $_GET['carburant']    ?? '',
+            'transmission' => $_GET['transmission'] ?? '',
+            'prix_min'     => $_GET['prix_min']     ?? '',
+            'prix_max'     => $_GET['prix_max']     ?? '',
+            'annee_min'    => $_GET['annee_min']    ?? '',
+            'annee_max'    => $_GET['annee_max']    ?? '',
+            'km_max'       => $_GET['km_max']       ?? '',
+            'search'       => $_GET['search']       ?? '',
         ];
         $page    = max(1, (int)($_GET['page'] ?? 1));
         $result  = Voiture::getAll($filters, $page);
