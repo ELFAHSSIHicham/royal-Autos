@@ -5,24 +5,23 @@ namespace Views\Base;
 use Views\AbstractView;
 
 /**
- * Footer View
+ * Renders the site footer.
  *
- * Rend le footer Royal Autos avec coordonnées, liens de navigation
- * et mentions légales. Inclus automatiquement dans toutes les vues
- * qui étendent BaseView.
+ * Included automatically in all pages extending BaseView.
+ * Injects the current year for the copyright notice.
  *
  * @package Views\Base
  */
 class FooterView extends AbstractView
 {
-    /** Clé template — année courante (copyright) */
+    /** Template variable key — current year for the copyright line */
     public const YEAR_KEY = 'YEAR';
 
-    /** Chemin vers le template footer */
+    /** @var string Absolute path to the footer template */
     private const TEMPLATE_HTML = __DIR__ . '/footer.php';
 
     /**
-     * Constructeur — injecte les valeurs par défaut.
+     * Injects the current year into the template.
      */
     public function __construct()
     {
@@ -30,9 +29,7 @@ class FooterView extends AbstractView
     }
 
     /**
-     * Retourne le chemin vers le template footer.
-     *
-     * @return string
+     * @return string Absolute path to the footer template
      */
     public function templatePath(): string
     {

@@ -5,42 +5,39 @@ namespace Views\Base;
 use Views\AbstractView;
 
 /**
- * Header View
+ * Renders the HTML <head> and top navigation bar.
  *
- * Rend la navbar et le <head> HTML de Royal Autos.
- * Injecte automatiquement le chemin courant pour surligner le lien actif.
+ * Automatically resolves the current path from the request URI
+ * to highlight the active navigation link in the template.
  *
  * @package Views\Base
  */
 class HeaderView extends AbstractView
 {
-    /** Clé template — chemin courant (pour le lien actif dans la nav) */
+    /** Template variable key — current URL path (used for active nav link) */
     public const CURRENT_PATH_KEY = 'CURRENT_PATH';
 
-    /** Clé template — titre de la page HTML */
+    /** Template variable key — HTML page title */
     public const PAGE_TITLE_KEY = 'PAGE_TITLE';
 
-    /** Chemin vers le template header */
+    /** @var string Absolute path to the header template */
     private const TEMPLATE_HTML = __DIR__ . '/header.php';
 
     /**
-     * Constructeur — injecte les valeurs par défaut dans le template.
+     * Resolves the current request path and injects default template values.
      */
     public function __construct()
     {
-        $currentPath = parse_url(
+        $this->data[self::CURRENT_PATH_KEY] = parse_url(
             $_SERVER['REQUEST_URI'] ?? '/',
             PHP_URL_PATH
         ) ?? '/';
 
-        $this->data[self::CURRENT_PATH_KEY] = $currentPath;
-        $this->data[self::PAGE_TITLE_KEY]   = 'Royal Autos — Automobiles de prestige · Montauban';
+        $this->data[self::PAGE_TITLE_KEY] = 'Royal Autos — Automobiles de prestige · Montauban';
     }
 
     /**
-     * Retourne le chemin vers le template header.
-     *
-     * @return string
+     * @return string Absolute path to the header template
      */
     public function templatePath(): string
     {
