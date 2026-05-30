@@ -1,16 +1,26 @@
 <?php
+
 namespace Controllers\Contact;
 
 use Controllers\ControllerInterface;
 use Shared\{CsrfGuard, RateLimiter, Sanitizer, InputValidator, Mailer};
 use Models\Contact\ContactMessage;
 
+/**
+ * Processes the contact form submission.
+ *
+ * @package Controllers\Contact
+ */
 class ContactPost implements ControllerInterface
 {
+    /**
+     * @return void
+     */
     public function control(): void
     {
         CsrfGuard::check();
 
+        /* 3 messages max toutes les 5 minutes par IP */
         if (!RateLimiter::check('contact', 3, 300)) {
             http_response_code(429);
             echo 'Trop de messages, réessayez plus tard.';
@@ -26,11 +36,11 @@ class ContactPost implements ControllerInterface
         ];
 
         $v = new InputValidator();
-        $v->required('nom', $d['nom'], 'Nom')
-          ->required('email', $d['email'], 'Email')
-          ->email('email', $d['email'])
-          ->required('message', $d['message'], 'Message')
-          ->minLength('message', $d['message'], 10);
+        $v->required('nom',     $d['nom'],     'Nom')
+            ->required('email',   $d['email'],   'Email')
+            ->email('email',      $d['email'])
+            ->required('message', $d['message'], 'Message')
+            ->minLength('message', $d['message'], 10);
 
         if (!$v->isValid()) {
             $_SESSION['contact_errors'] = $v->getErrors();
@@ -41,12 +51,13 @@ class ContactPost implements ControllerInterface
 
         ContactMessage::create($d);
 
-        // Email de confirmation au visiteur
+        /* Rendu du template email par buffer de sortie */
         $mailer = new Mailer();
         ob_start();
         extract(['nom' => $d['nom'], 'message' => $d['message']]);
         include __DIR__ . '/../../Views/Emails/contact-confirmation.php';
         $html = ob_get_clean();
+
         $mailer->send($d['email'], $d['nom'], 'Votre message a bien été reçu — Royal Autos', $html);
 
         $_SESSION['contact_success'] = true;
@@ -54,6 +65,11 @@ class ContactPost implements ControllerInterface
         exit();
     }
 
+    /**
+     * @param string $path
+     * @param string $method
+     * @return bool
+     */
     public static function support(string $path, string $method): bool
     {
         return $path === '/contact' && $method === 'POST';
