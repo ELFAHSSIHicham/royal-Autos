@@ -1,23 +1,20 @@
 <?php
 
 /**
- * Autoloader Class
+ * PSR-4 compatible autoloader.
  *
- * PSR-4 compatible autoloading for Royal Autos.
- * Converts namespace separators to directory separators
- * and loads the corresponding file from the src/ directory.
+ * Maps namespaces to the src/ directory by replacing namespace separators
+ * with directory separators.
  *
  * Example:
  *   new Controllers\Home\HomeController()
  *   → loads src/Controllers/Home/HomeController.php
- *
- * @package Root
  */
 class Autoloader
 {
     /**
-     * Registers the autoload function with PHP's SPL autoloader.
-     * Call once at application startup in public/index.php.
+     * Registers the autoload callback with PHP's SPL autoloader stack.
+     * Must be called once at application bootstrap.
      *
      * @return void
      */
