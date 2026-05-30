@@ -1,4 +1,5 @@
 <?php
+
 namespace Controllers\Reservation;
 
 use Controllers\ControllerInterface;
@@ -6,8 +7,17 @@ use Shared\StripeService;
 use Models\Reservation\Reservation;
 use Models\Voiture\Voiture;
 
+/**
+ * Handles incoming Stripe webhook events.
+ * Verifies the signature before processing any payload.
+ *
+ * @package Controllers\Reservation
+ */
 class StripeWebhookController implements ControllerInterface
 {
+    /**
+     * @return void
+     */
     public function control(): void
     {
         $payload = file_get_contents('php://input');
@@ -22,9 +32,11 @@ class StripeWebhookController implements ControllerInterface
             exit();
         }
 
+        /* Paiement confirmé : on met à jour la réservation et le statut du véhicule */
         if ($event->type === 'checkout.session.completed') {
             $session = $event->data->object;
             $resa    = Reservation::getBySessionId($session->id);
+
             if ($resa) {
                 Reservation::updateStripe(
                     (int)$resa['id'],
@@ -40,6 +52,11 @@ class StripeWebhookController implements ControllerInterface
         echo 'ok';
     }
 
+    /**
+     * @param string $path
+     * @param string $method
+     * @return bool
+     */
     public static function support(string $path, string $method): bool
     {
         return $path === '/stripe/webhook' && $method === 'POST';
