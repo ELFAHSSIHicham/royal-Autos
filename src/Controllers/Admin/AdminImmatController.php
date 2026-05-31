@@ -2,39 +2,23 @@
 
 namespace Controllers\Admin;
 
-/**
- * JSON endpoint to fetch vehicle data from a license plate number.
- * Calls an external API and normalizes the response to match the form fields.
- *
- * @package Controllers\Admin
- */
 class AdminImmatController
 {
-    /**
-     * @param string $path
-     * @param string $method
-     * @return bool
-     */
     public static function support(string $path, string $method): bool
     {
         return $path === '/api/immat' && $method === 'GET';
     }
 
-    /**
-     * @return void
-     */
     public function control(): void
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        /* Vérification de session sans passer par SessionGuard (route API légère) */
         if (empty($_SESSION['admin_id'])) {
             http_response_code(403);
             echo json_encode(['error' => 'Accès refusé']);
             exit;
         }
 
-        /* Nettoyage et validation du format de plaque française (ex : AB123CD) */
         $plaque = strtoupper(trim($_GET['plaque'] ?? ''));
         $plaque = str_replace('-', '', $plaque);
 
@@ -75,31 +59,78 @@ class AdminImmatController
             exit;
         }
 
-        /* Normalisation des champs API vers les noms attendus par le formulaire */
+        /* Log brut pour debug — à retirer en prod */
+        error_log('[ImmatAPI] raw=' . json_encode($d));
+
         $data = $d['data'] ?? $d;
 
+        /* Dates */
+        $dateMC = null;
+        foreach (['date1erCir_us','date_mise_en_circulation','date_mise_circulation','date_1ere_circulation'] as $k) {
+            if (!empty($data[$k])) { $dateMC = $this->toFrDate($data[$k]); break; }
+        }
+        $dateIM = null;
+        foreach (['date_premiere_immatriculation','date_immatriculation','date_1ere_immatriculation'] as $k) {
+            if (!empty($data[$k])) { $dateIM = $this->toFrDate($data[$k]); break; }
+        }
+        if (!$dateIM && $dateMC) $dateIM = $dateMC;
+
+        /* Année */
+        $annee = null;
+        foreach (['date1erCir_us','date_mise_en_circulation','date_mise_circulation'] as $k) {
+            if (!empty($data[$k])) { $annee = substr($data[$k], 0, 4); break; }
+        }
+
+        /* Couleur — essaie tous les champs possibles */
+        $couleur = null;
+        foreach (['couleur','couleur_vehicule','couleur_exterieure','teinte','color'] as $k) {
+            if (!empty($data[$k])) { $couleur = ucfirst(strtolower($data[$k])); break; }
+        }
+
+        /* Puissance — la clé réelle est puisFiscReelCH ("102 CH") */
+        $puissance = null;
+        foreach (['puisFiscReelCH','puissance_din','puissance_fiscale','puissance','ch'] as $k) {
+            if (!empty($data[$k])) { $puissance = (int) preg_replace('/\D+/', '', $data[$k]); break; } // "102 CH" -> 102
+        }
+
+        /* Portes — nb_portes peut valoir "0" (info absente côté API) */
+        $portes = null;
+        foreach (['nb_portes','nombre_de_portes','nombre_portes','portes'] as $k) {
+            if (!empty($data[$k])) { $portes = (int)$data[$k]; break; }
+        }
+
+        /* Places — la clé réelle est nr_passagers */
+        $places = null;
+        foreach (['nr_passagers','nb_places','nombre_de_places','nombre_places','places','nb_places_assises'] as $k) {
+            if (!empty($data[$k])) { $places = (int)$data[$k]; break; }
+        }
+
         echo json_encode([
-            'marque'       => $data['marque']    ?? null,
-            'modele'       => $data['modele']    ?? null,
-            'annee'        => isset($data['date1erCir_us'])
-                ? substr($data['date1erCir_us'], 0, 4)
-                : (isset($data['date_mise_en_circulation'])
-                    ? substr($data['date_mise_en_circulation'], 0, 4)
-                    : null),
-            'carburant'    => $this->normaliseCarburant($data['energie'] ?? ''),
-            'transmission' => $this->normaliseTransmission($data['boite_de_vitesse'] ?? ''),
-            'puissance'    => $data['puissance_din'] ?? null,
-            'couleur'      => $data['couleur']       ?? null,
+            'marque'                => $data['marque']       ?? null,
+            'modele'                => $data['modele']       ?? $data['modele_en'] ?? null,
+            'annee'                 => $annee,
+            'carburant'             => $this->normaliseCarburant($data['energieNGC'] ?? $data['type_moteur'] ?? $data['energie'] ?? $data['carburant'] ?? ''),
+            'transmission'          => $this->normaliseTransmission($data['boite_vitesse'] ?? $data['boite_de_vitesse'] ?? $data['boite'] ?? $data['transmission'] ?? ''),
+            'puissance'             => $puissance,
+            'couleur'               => $couleur,
+            'motorisation'          => $data['motorisation'] ?? $data['cylindree'] ?? $data['version'] ?? null,
+            'finition'              => $data['finition']     ?? $data['version']   ?? null,
+            'portes'                => $portes,
+            'places'                => $places,
+            'date_mise_circulation' => $dateMC,
+            'date_immatriculation'  => $dateIM,
         ]);
         exit;
     }
 
-    /**
-     * Maps a raw fuel type string from the API to a normalized French label.
-     *
-     * @param string $val
-     * @return string
-     */
+    private function toFrDate(string $val): ?string
+    {
+        $val = trim($val);
+        if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $val)) return $val;
+        if (preg_match('/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/', $val, $m)) return $m[3].'/'.$m[2].'/'.$m[1];
+        return null;
+    }
+
     private function normaliseCarburant(string $val): string
     {
         $val = strtolower($val);
@@ -110,14 +141,11 @@ class AdminImmatController
         return 'Essence';
     }
 
-    /**
-     * Maps a raw gearbox string from the API to either 'Automatique' or 'Manuelle'.
-     *
-     * @param string $val
-     * @return string
-     */
     private function normaliseTransmission(string $val): string
     {
-        return str_contains(strtolower($val), 'auto') ? 'Automatique' : 'Manuelle';
+        $v = strtolower(trim($val));
+        if ($v === 'a' || str_contains($v, 'auto')) return 'Automatique';
+        // "M", "man", "manuelle", ou valeur inconnue -> Manuelle
+        return 'Manuelle';
     }
 }
