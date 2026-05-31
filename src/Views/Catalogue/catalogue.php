@@ -246,25 +246,32 @@
     function loadModeles(marqueId) {
         const sel   = document.getElementById('cat-modele');
         const block = document.getElementById('filter-modele');
+
         if (!marqueId) {
-            sel.innerHTML = '<option value="">Tous les modèles</option>';
-            block.style.opacity = '.4';
+            sel.innerHTML             = '<option value="">Tous les modèles</option>';
+            block.style.opacity       = '.4';
             block.style.pointerEvents = 'none';
+            /* Mise à jour immédiate du compteur quand on remet "toutes les marques" */
+            debouncedCount();
             return;
         }
-        block.style.opacity = '1';
+
+        block.style.opacity       = '1';
         block.style.pointerEvents = 'auto';
+
         fetch('/api/modeles?marque_id=' + marqueId)
             .then(r => r.json())
             .then(data => {
                 sel.innerHTML = '<option value="">Tous les modèles</option>';
                 data.forEach(m => {
                     const opt = document.createElement('option');
-                    opt.value = m.id;
+                    opt.value       = m.id;
                     opt.textContent = m.nom;
                     if (String(m.id) === SELECTED_MODELE) opt.selected = true;
                     sel.appendChild(opt);
                 });
+                /* Mise à jour du compteur après chargement des modèles */
+                debouncedCount();
             });
     }
 

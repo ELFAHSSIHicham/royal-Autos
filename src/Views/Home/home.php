@@ -16,7 +16,7 @@
                     <span class="eyebrow-txt">Montauban · Tarn-et-Garonne · Depuis 2008</span>
                 </div>
                 <h1 class="h1">Le meilleur<br>de l'automobile<br><em>à votre portée</em></h1>
-                <p class="hero-desc">Chaque véhicule est rigoureusement sélectionné, inspecté et garanti. Une expérience d'acquisition à la hauteur de vos exigences.</p>
+                <p class="hero-desc">Chaque véhicule est rigoureusement sélectionné et inspecté. Une expérience d'acquisition à la hauteur de vos exigences.</p>
                 <div class="hero-btns">
                     <a href="/catalogue" class="btn-gold">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

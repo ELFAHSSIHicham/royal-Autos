@@ -30,7 +30,6 @@
                     <li><a href="/catalogue?marque=BMW">BMW</a></li>
                     <li><a href="/catalogue?marque=Audi">Audi</a></li>
                     <li><a href="/catalogue?marque=Porsche">Porsche</a></li>
-                    <li><a href="/catalogue?marque=Tesla">Tesla</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -49,7 +48,7 @@
         <div class="footer-bottom">
             <p class="footer-copy">© <?= htmlspecialchars($YEAR ?? date('Y')) ?> Royal Autos Montauban — Tous droits réservés</p>
             <div class="footer-bottom-links">
-                <a href="/mentions-legales#mentions-legales">Mentions légales</a>
+                <a href="/mentions-legales">Mentions légales</a>
                 <a href="/mentions-legales#confidentialite">Confidentialité</a>
                 <a href="/mentions-legales#cgv">CGV</a>
             </div>
