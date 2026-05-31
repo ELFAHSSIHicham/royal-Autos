@@ -56,6 +56,7 @@ if (
 
 use Controllers\Home\HomeController;
 use Controllers\Catalogue\CatalogueController;
+use Controllers\Catalogue\ApiCountController;
 use Controllers\Catalogue\DetailVoitureController;
 use Controllers\Catalogue\ModelesByMarqueController;
 use Controllers\Contact\ContactController;
@@ -82,14 +83,13 @@ use Controllers\Admin\AdminModeleCreatePost;
 $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-/* Le webhook Stripe doit être traité avant le démarrage de session
-   car il lit php://input en raw et ne nécessite pas de cookie */
+/* Le webhook Stripe doit être traité avant le démarrage de session */
 if ($path === '/stripe/webhook' && $method === 'POST') {
     (new StripeWebhookController())->control();
     exit();
 }
 
-/* Pages de retour Stripe : rendu direct sans passer par le système de vues */
+/* Pages de retour Stripe */
 if ($path === '/reservation/succes' && $method === 'GET') {
     $PAGE_TITLE = 'Réservation confirmée — Royal Autos';
     include __DIR__ . '/../src/Views/Base/header.php';
@@ -116,10 +116,11 @@ if (str_starts_with($path, '/uploads/')) {
     }
 }
 
-/* Registre de tous les controllers — parcouru dans l'ordre jusqu'au premier match */
+/* Registre de tous les controllers */
 $controllers = [
     new HomeController(),
     new CatalogueController(),
+    new ApiCountController(),
     new DetailVoitureController(),
     new ModelesByMarqueController(),
     new ContactController(),
