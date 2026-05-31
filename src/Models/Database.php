@@ -3,27 +3,21 @@
 namespace Models;
 
 /**
- * Class Database
- *
- * Singleton MySQLi pour Royal Autos.
- * Lit les credentials depuis les variables d'environnement ou le fichier .env.
+ * MySQLi singleton connection manager.
+ * Reads credentials from environment variables or the .env file.
  *
  * @package Models
  */
 class Database
 {
-    /**
-     * Instance singleton de la connexion MySQLi
-     *
-     * @var \mysqli|null
-     */
+    /** @var \mysqli|null Active MySQLi connection instance */
     private static ?\mysqli $conn = null;
 
     /**
-     * Retourne la connexion active. La crée si elle n'existe pas encore.
+     * Returns the active connection, creating it on first call.
      *
      * @return \mysqli
-     * @throws \RuntimeException Si la connexion échoue
+     * @throws \RuntimeException If the connection fails
      */
     public static function getConnection(): \mysqli
     {
@@ -31,10 +25,10 @@ class Database
             return self::$conn;
         }
 
-        $host = self::parseEnvVar('DB_HOST') ?: 'localhost';
-        $user = self::parseEnvVar('DB_USER') ?: '';
+        $host = self::parseEnvVar('DB_HOST')     ?: 'localhost';
+        $user = self::parseEnvVar('DB_USER')     ?: '';
         $pass = self::parseEnvVar('DB_PASSWORD') ?: '';
-        $db   = self::parseEnvVar('DB_NAME') ?: '';
+        $db   = self::parseEnvVar('DB_NAME')     ?: '';
 
         try {
             mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
@@ -51,21 +45,20 @@ class Database
     }
 
     /**
-     * Lit une variable d'environnement depuis le système ou le fichier .env.
-     * Cherche d'abord dans les variables système, puis dans .env.
+     * Reads an environment variable from the system or the .env file.
+     * System variables take priority over the .env file.
      *
-     * @param string $envVar Nom de la variable
-     * @return string|false  Valeur ou false si introuvable
+     * @param string $envVar Variable name
+     * @return string|false  Value or false if not found
      */
     public static function parseEnvVar(string $envVar): string|false
     {
-        // 1. Variables système en priorité
+        /* Variables système en priorité */
         $val = getenv($envVar);
         if ($val !== false && $val !== '') {
             return $val;
         }
 
-        // 2. Lecture du fichier .env (à la racine du projet)
         $envPath = __DIR__ . '/../../.env';
         if (!file_exists($envPath)) {
             return false;
@@ -79,10 +72,8 @@ class Database
         foreach ($lines as $line) {
             $line = trim($line);
 
-            if ($line === '' || $line[0] === '#' || $line[0] === ';') {
-                continue;
-            }
-            if (!str_contains($line, '=')) {
+            /* Ignorer les commentaires et les lignes sans séparateur */
+            if ($line === '' || $line[0] === '#' || $line[0] === ';' || !str_contains($line, '=')) {
                 continue;
             }
 
@@ -90,7 +81,7 @@ class Database
             $key   = trim($key);
             $value = trim($value);
 
-            // Supprime les guillemets entourant la valeur
+            /* Suppression des guillemets simples ou doubles autour de la valeur */
             if (
                 (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
                 (str_starts_with($value, "'") && str_ends_with($value, "'"))
@@ -107,10 +98,10 @@ class Database
     }
 
     /**
-     * Vérifie que la connexion est active (utile pour les health checks).
+     * Pings the database to verify the connection is alive.
      *
-     * @throws \RuntimeException
      * @return void
+     * @throws \RuntimeException
      */
     public static function checkConnection(): void
     {

@@ -5,29 +5,29 @@ namespace Views\Base;
 use Views\View;
 
 /**
- * Base View
+ * Base page view.
  *
- * Classe abstraite de base pour toutes les pages de Royal Autos.
- * Assemble la réponse HTML complète : header + corps + footer.
+ * Assembles a full HTML response by wrapping the page body
+ * between the shared header and footer partials.
  *
- * Toutes les vues de pages concrètes étendent cette classe
- * et implémentent templatePath() pour indiquer leur template.
+ * All concrete page views extend this class and implement
+ * templatePath() to point to their specific template file.
  *
  * @package Views\Base
  */
 abstract class BaseView implements View
 {
     /**
-     * Données dynamiques fournies au template du corps (clé => valeur)
+     * Key-value pairs extracted as variables inside the body template.
      *
      * @var array<string, mixed>
      */
     protected array $data = [];
 
     /**
-     * Rend la page complète : header + corps + footer.
+     * Renders the full page: header + body + footer.
      *
-     * @return string HTML complet
+     * @return string Complete HTML document
      */
     public function render(): string
     {
@@ -40,7 +40,7 @@ abstract class BaseView implements View
     }
 
     /**
-     * Injecte des données pour le template du corps.
+     * Merges the given data into the existing template data.
      *
      * @param array<string, mixed> $data
      * @return void
@@ -51,9 +51,10 @@ abstract class BaseView implements View
     }
 
     /**
-     * Rend le corps de la page à partir du template.
+     * Renders the body template using output buffering.
+     * Each key in $data becomes a local variable inside the template.
      *
-     * @return string HTML du corps
+     * @return string Rendered HTML body
      */
     public function renderBody(): string
     {
@@ -66,8 +67,8 @@ abstract class BaseView implements View
     }
 
     /**
-     * Convertit une valeur mixte en string de façon sûre.
-     * Retourne une chaîne vide si la valeur n'est pas scalaire.
+     * Safely casts a mixed value to string.
+     * Returns an empty string for non-scalar, non-Stringable values.
      *
      * @param mixed $value
      * @return string

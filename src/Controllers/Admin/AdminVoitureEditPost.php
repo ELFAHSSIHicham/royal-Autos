@@ -1,20 +1,30 @@
 <?php
+
 namespace Controllers\Admin;
 
 use Controllers\ControllerInterface;
 use Shared\{CsrfGuard, SessionGuard, Sanitizer};
 use Models\Voiture\Voiture;
 
+/**
+ * Processes the vehicle edit form submission.
+ *
+ * @package Controllers\Admin
+ */
 class AdminVoitureEditPost implements ControllerInterface
 {
+    /**
+     * @return void
+     */
     public function control(): void
     {
         SessionGuard::requireAdmin();
         CsrfGuard::check();
 
-        $id = (int)(explode('/', $_SERVER['REQUEST_URI'])[4] ?? 0);
-
+        /* L'ID du véhicule est le 5ème segment de l'URI : /admin/voitures/modifier/{id} */
+        $id      = (int)(explode('/', $_SERVER['REQUEST_URI'])[4] ?? 0);
         $statuts = ['disponible', 'reserve', 'vendu', 'en_preparation'];
+
         $d = [
             'marque_id'             => Sanitizer::int($_POST['marque_id']             ?? 0),
             'modele_id'             => Sanitizer::int($_POST['modele_id']             ?? 0) ?: null,
@@ -39,39 +49,40 @@ class AdminVoitureEditPost implements ControllerInterface
             'slug'                  => '',
         ];
 
-        // Slug
-        $marques   = Voiture::getMarques();
+        /* Construction du slug à partir de la marque, du modèle et de l'année */
         $nomMarque = '';
-        foreach ($marques as $m) {
-            if ((int)$m['id'] === (int)$d['marque_id']) { $nomMarque = $m['nom']; break; }
+        foreach (Voiture::getMarques() as $m) {
+            if ((int)$m['id'] === (int)$d['marque_id']) {
+                $nomMarque = $m['nom'];
+                break;
+            }
         }
         $d['slug'] = Sanitizer::slug($nomMarque . '-' . $d['modele'] . '-' . $d['annee']);
 
-        // Supprimer les images que l'admin a retirées via le bouton "×"
+        /* Suppression des images décochées par l'admin dans le formulaire */
         $imagesExistantes = array_map('intval', $_POST['images_existantes'] ?? []);
-        $toutesImages     = Voiture::getImages($id);
-        foreach ($toutesImages as $img) {
+        foreach (Voiture::getImages($id) as $img) {
             if (!in_array((int)$img['id'], $imagesExistantes, true)) {
                 Voiture::deleteImage((int)$img['id']);
             }
         }
 
-        // Sauvegarder les nouvelles photos uploadées
+        /* Ajout des nouvelles photos dans la limite de 40 images par véhicule */
         $photosRestantes = count(Voiture::getImages($id));
-        $photos          = $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []);
-        $photos          = array_slice($photos, 0, max(0, 40 - $photosRestantes));
-        $premiereUrl     = Voiture::saveNewImages($id, $photos, $photosRestantes + 1); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id." PHOTOS=".count($photos)." FILES=".print_r($_FILES,true)."
-", FILE_APPEND); file_put_contents(__DIR__ . "/../../../storage/logs/debug.log", "ID=".$id." PHOTOS=".count($photos)." FILES=".print_r($_FILES,true)."
-", FILE_APPEND);
+        $photos          = array_slice(
+            $this->normaliseFiles($_FILES['nouvelles_photos'] ?? []),
+            0,
+            max(0, 40 - $photosRestantes)
+        );
+        $premiereUrl = Voiture::saveNewImages($id, $photos, $photosRestantes + 1);
 
-        // Définir l'image principale
+        /* Détermination de l'image principale : sélection manuelle > première uploadée > première en BDD */
         $imagePrincipale = Sanitizer::str($_POST['image_principale_url'] ?? '');
         if (!$imagePrincipale && $premiereUrl) {
             $imagePrincipale = $premiereUrl;
         }
         if (!$imagePrincipale) {
-            // Prendre la première image restante en BDD
-            $remaining = Voiture::getImages($id);
+            $remaining       = Voiture::getImages($id);
             $imagePrincipale = $remaining[0]['url'] ?? '';
         }
         $d['image_principale'] = $imagePrincipale;
@@ -83,10 +94,17 @@ class AdminVoitureEditPost implements ControllerInterface
         exit();
     }
 
+    /**
+     * Normalizes the inverted $_FILES array structure into a flat array of file entries.
+     *
+     * @param array<string, mixed> $files
+     * @return array<int, array<string, mixed>>
+     */
     private function normaliseFiles(array $files): array
     {
         if (empty($files['tmp_name'])) return [];
         if (!is_array($files['tmp_name'])) return [$files];
+
         $result = [];
         $count  = count($files['tmp_name']);
         for ($i = 0; $i < $count; $i++) {
@@ -100,6 +118,11 @@ class AdminVoitureEditPost implements ControllerInterface
         return $result;
     }
 
+    /**
+     * @param string $path
+     * @param string $method
+     * @return bool
+     */
     public static function support(string $path, string $method): bool
     {
         return preg_match('#^/admin/voitures/modifier/\d+$#', $path) && $method === 'POST';

@@ -1,17 +1,27 @@
 <?php
+
 namespace Controllers\Reservation;
 
 use Controllers\ControllerInterface;
-use Shared\{CsrfGuard, RateLimiter, Sanitizer, InputValidator, StripeService, Mailer};
+use Shared\{CsrfGuard, RateLimiter, Sanitizer, InputValidator, StripeService};
 use Models\Voiture\Voiture;
 use Models\Reservation\Reservation;
 
+/**
+ * Processes the reservation form and initiates a Stripe checkout session.
+ *
+ * @package Controllers\Reservation
+ */
 class ReservationPost implements ControllerInterface
 {
+    /**
+     * @return void
+     */
     public function control(): void
     {
         CsrfGuard::check();
 
+        /* 3 réservations max toutes les 5 minutes par IP */
         if (!RateLimiter::check('reservation', 3, 300)) {
             http_response_code(429);
             echo 'Trop de demandes, réessayez dans quelques minutes.';
@@ -35,10 +45,10 @@ class ReservationPost implements ControllerInterface
         ];
 
         $v = new InputValidator();
-        $v->required('nom', $d['nom'], 'Nom')
-          ->required('email', $d['email'], 'Email')
-          ->email('email', $d['email'])
-          ->required('telephone', $d['telephone'], 'Téléphone');
+        $v->required('nom',       $d['nom'],       'Nom')
+            ->required('email',     $d['email'],     'Email')
+            ->email('email',        $d['email'])
+            ->required('telephone', $d['telephone'], 'Téléphone');
 
         if (!$v->isValid()) {
             $_SESSION['resa_errors'] = $v->getErrors();
@@ -47,8 +57,11 @@ class ReservationPost implements ControllerInterface
             exit();
         }
 
-        $acompte     = (int)round($voiture['prix'] * 0.10 * 100); // 10% en centimes
-        $resaId      = Reservation::create([
+        /* L'acompte correspond à 10% du prix, converti en centimes pour Stripe */
+        $prix    = (float)($voiture['prix'] ?? 0);
+        $acompte = intval($prix * 0.10 * 100);
+
+        $resaId = Reservation::create([
             'voiture_id' => (int)$voiture['id'],
             'nom'        => $d['nom'],
             'prenom'     => $d['prenom'],
@@ -76,6 +89,11 @@ class ReservationPost implements ControllerInterface
         exit();
     }
 
+    /**
+     * @param string $path
+     * @param string $method
+     * @return bool
+     */
     public static function support(string $path, string $method): bool
     {
         return $path === '/reservation' && $method === 'POST';

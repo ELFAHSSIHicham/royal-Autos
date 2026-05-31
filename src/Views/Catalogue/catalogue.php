@@ -125,11 +125,14 @@
                 </select>
             </div>
 
-            <!-- Boutons -->
-            <button type="submit" class="btn-gold" style="width:100%;justify-content:center;margin-bottom:8px">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                Rechercher
-            </button>
+            <!-- Bouton avec badge compteur -->
+            <div style="position:relative;margin-bottom:8px">
+                <button type="submit" class="btn-gold" id="btn-search" style="width:100%;justify-content:center;padding-right:50px">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Voir les résultats
+                </button>
+                <span id="btn-count-badge"><?= $total ?? 0 ?></span>
+            </div>
             <a href="/catalogue" class="btn-grey" style="width:100%;justify-content:center;font-size:9px;letter-spacing:.1em;text-transform:uppercase">
                 Réinitialiser
             </a>
@@ -198,6 +201,35 @@
 <style>
     .filter-block       { border-top:1px solid var(--g-l); padding:14px 0; }
     .filter-title       { font-size:8px; letter-spacing:.18em; text-transform:uppercase; color:#aaa; margin-bottom:10px; }
+    #btn-search         { transition: opacity .2s; }
+    #btn-search.loading { opacity: .6; pointer-events: none; }
+
+    #btn-count-badge {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        background: #fff;
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 500;
+        min-width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 7px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    #btn-count-badge.pulse {
+        animation: badge-pulse .3s ease;
+    }
+    @keyframes badge-pulse {
+        0%   { transform: translateY(-50%) scale(1); }
+        50%  { transform: translateY(-50%) scale(1.25); }
+        100% { transform: translateY(-50%) scale(1); }
+    }
 
     @media (max-width: 860px) {
         .section > div[style*="grid-template-columns:260px"] {
@@ -207,17 +239,20 @@
 </style>
 
 <script>
-    /* Chargement dynamique des modèles selon la marque */
     const SELECTED_MODELE = <?= json_encode((string)($filters['modele_id'] ?? '')) ?>;
+    let countTimer = null;
 
+    /* ── Chargement modèles dynamique ── */
     function loadModeles(marqueId) {
-        const sel    = document.getElementById('cat-modele');
-        const block  = document.getElementById('filter-modele');
+        const sel   = document.getElementById('cat-modele');
+        const block = document.getElementById('filter-modele');
 
         if (!marqueId) {
-            sel.innerHTML = '<option value="">Tous les modèles</option>';
-            block.style.opacity        = '.4';
-            block.style.pointerEvents  = 'none';
+            sel.innerHTML             = '<option value="">Tous les modèles</option>';
+            block.style.opacity       = '.4';
+            block.style.pointerEvents = 'none';
+            /* Mise à jour immédiate du compteur quand on remet "toutes les marques" */
+            debouncedCount();
             return;
         }
 
@@ -230,15 +265,54 @@
                 sel.innerHTML = '<option value="">Tous les modèles</option>';
                 data.forEach(m => {
                     const opt = document.createElement('option');
-                    opt.value = m.id;
+                    opt.value       = m.id;
                     opt.textContent = m.nom;
                     if (String(m.id) === SELECTED_MODELE) opt.selected = true;
                     sel.appendChild(opt);
                 });
+                /* Mise à jour du compteur après chargement des modèles */
+                debouncedCount();
             });
     }
 
-    /* Chargement initial si une marque est déjà sélectionnée */
-    const marqueInit = document.getElementById('cat-marque').value;
-    if (marqueInit) loadModeles(marqueInit);
+    /* ── Compteur live avec badge ── */
+    function updateCount() {
+        const form  = document.getElementById('filter-form');
+        const btn   = document.getElementById('btn-search');
+        const badge = document.getElementById('btn-count-badge');
+        const params = new URLSearchParams();
+        for (const [k, v] of new FormData(form).entries()) {
+            if (v) params.append(k, v);
+        }
+        btn.classList.add('loading');
+        fetch('/api/count?' + params.toString())
+            .then(r => r.json())
+            .then(json => {
+                const n = json.count ?? 0;
+                badge.textContent = n;
+                badge.classList.remove('pulse');
+                void badge.offsetWidth;
+                badge.classList.add('pulse');
+                btn.classList.remove('loading');
+            })
+            .catch(() => btn.classList.remove('loading'));
+    }
+
+    function debouncedCount() {
+        clearTimeout(countTimer);
+        countTimer = setTimeout(updateCount, 350);
+    }
+
+    /* ── Init ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        const marqueInit = document.getElementById('cat-marque').value;
+        if (marqueInit) loadModeles(marqueInit);
+
+        document.getElementById('filter-form').querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('change', debouncedCount);
+            if (el.type === 'text' || el.type === 'number') {
+                el.addEventListener('input', debouncedCount);
+            }
+        });
+    });
 </script>

@@ -3,31 +3,26 @@
 namespace Views;
 
 /**
- * Abstract View
+ * Base class for all view components.
  *
- * Classe de base pour tous les composants de vue de Royal Autos.
- * Fournit le mécanisme de rendu par template PHP avec injection de données.
- *
- * Système de templates :
- * - Les données sont stockées dans $data (clé => valeur)
- * - extract() rend chaque clé disponible comme variable dans le template
- * - Le rendu est capturé avec ob_start / ob_get_clean
+ * Provides a template rendering engine using PHP's output buffering.
+ * Data injected via setData() is extracted as local variables inside the template,
+ * making each key directly accessible (e.g. $PAGE_TITLE, $CURRENT_PATH).
  *
  * @package Views
  */
 abstract class AbstractView implements View
 {
     /**
-     * Données dynamiques fournies au template (clé => valeur)
-     * Exemple : ['token' => 'abc123', 'titre' => 'Royal Autos']
+     * Key-value pairs extracted as variables inside the template.
      *
      * @var array<string, mixed>
      */
     protected array $data = [];
 
     /**
-     * Injecte des données pour le template.
-     * Fusionne avec les données existantes sans écraser le tableau entier.
+     * Merges the given data into the existing template data.
+     * Does not overwrite previously set keys unless explicitly included.
      *
      * @param array<string, mixed> $data
      * @return void
@@ -38,9 +33,10 @@ abstract class AbstractView implements View
     }
 
     /**
-     * Rend le corps de la vue à partir du template.
+     * Renders the template by extracting $data into local variables
+     * and capturing the output buffer.
      *
-     * @return string HTML rendu
+     * @return string Rendered HTML
      */
     public function renderBody(): string
     {
